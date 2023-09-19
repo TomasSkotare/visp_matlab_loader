@@ -1,0 +1,4 @@
+reference/*
+matlab/libraries*
+**/__pycache__/
+tests/output/*
