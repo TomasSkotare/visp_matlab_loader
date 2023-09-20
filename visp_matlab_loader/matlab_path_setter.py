@@ -60,7 +60,7 @@ class MatlabPathSetter:
 
         # Check if MATLAB path is already in LD_LIBRARY_PATH
         if any(dir_to_add in ld_library_path for dir_to_add in dirs_to_add):
-            print("Warning: MATLAB path is already in LD_LIBRARY_PATH.")
+            print("MATLAB path is already in LD_LIBRARY_PATH. no need to set it again.")
             return
 
         # Add the MATLAB directories to LD_LIBRARY_PATH
