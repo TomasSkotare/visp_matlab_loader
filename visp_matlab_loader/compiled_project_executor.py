@@ -2,6 +2,7 @@
 # This is a workaround to avoid passing values as text in the console.
 
 from typing import Iterable
+from argon2 import PasswordHasher
 import numpy as np
 from scipy.io import savemat, loadmat
 import os
@@ -14,16 +15,6 @@ from . import matlab_path_setter
 from .find_compiled_projects import MatlabProject
 from .matlab_execution_result import MatlabExecutionResult
 
-
-class ProjectFunction:
-    name: str
-    input: list
-    output: list
-    
-    def __init__(self, json_dict) -> None:
-        pass
-    
-    
 
 class ExecuteCompiledProject:
     """Create a script executor.
@@ -46,8 +37,9 @@ class ExecuteCompiledProject:
     Returns:
         ScriptExecutor: An instance of the class
     """
+    
 
-    vo: str = None
+
     auto_convert: bool
     verbose: bool
     # The input file stores the inputs to the matlab function, after conversion
@@ -55,6 +47,7 @@ class ExecuteCompiledProject:
     # LD_LIBRARY_PATH: str
     available_functions: dict
     matlab_project: MatlabProject
+    return_inputs: bool
 
     def __init__(
         self,
@@ -63,6 +56,7 @@ class ExecuteCompiledProject:
         verbose=False,
         input_file=f"{os.getcwd()}/input.mat",
         function_json=None,
+        return_inputs = False
     ) -> None:
         self.matlab_project = matlab_project
         self.auto_convert = auto_convert
@@ -70,18 +64,23 @@ class ExecuteCompiledProject:
         self.input_file = input_file
         self.path_setter = matlab_path_setter.MatlabPathSetter()
         self.path_setter.verify_paths()
-        
+        self.return_inputs = return_inputs
+
         if not function_json:
             function_json = matlab_project.function_json
 
         if function_json:
-            self.available_functions = create_script.json_to_dict(
-                function_json
-            )
+            self.available_functions = create_script.json_to_dict(function_json)
 
     def vprint(self, *args):
         if self.verbose:
             print(*args)
+            
+    def find_available_function(self, search:str):
+        # Search for the function name in the available functions
+        possible_functions = [f for f in self.available_functions.keys() if search in f]
+        return possible_functions
+        
 
     @staticmethod
     def iterate_or_return_single(obj):
@@ -121,13 +120,15 @@ class ExecuteCompiledProject:
 
         for i, arg in enumerate(args):
             if self.auto_convert:
-                if isinstance(arg, numbers.Number):
+                if isinstance(arg, numbers.Real):
                     conversion_message = f"Input argument {i}: Converting argument to float, was {type(arg).__name__}"
                     arg = float(arg)
                 elif isinstance(arg, list):
                     conversion_message = f"Input argument {i}: Found list, attempting conversion if number"
+                    # We must verify if this actually works with complex file types.
+                    
                     arg = [
-                        float(entry) if isinstance(entry, numbers.Number) else entry
+                        float(entry) if isinstance(entry, numbers.Real) else entry if isinstance(entry, numbers.Complex) else entry
                         for entry in arg
                     ]
                 else:
@@ -149,11 +150,13 @@ class ExecuteCompiledProject:
         )
         exit_code = stream.wait()
         self.vprint(f"MATLAB exited with code: {exit_code}")
+        # Ensure output is string!
         matlab_output = stream.communicate()[0]
+        matlab_output = matlab_output.decode("utf-8")
         if exit_code != 0:
             self.vprint("Error: Nonzero MATLAB exit code, no results returned!")
-            return MatlabExecutionResult(exit_code, matlab_output, function_name, None)
-                
+            return MatlabExecutionResult(exit_code, matlab_output, function_name, dict())
+
         res = loadmat("results.mat", squeeze_me=True, simplify_cells=True)
         names, outputs = res["results"]
         # Due to how we squeeze and simplify the cells, the output array can be a numpy
@@ -169,8 +172,18 @@ class ExecuteCompiledProject:
         outputs_iter = self.__class__.iterate_or_return_single(outputs)
 
         names = names.replace(",", " ").split()
+        if self.return_inputs:
+            return_inputs = list(varargin)
+        else:
+            return_inputs = []
+        return MatlabExecutionResult(
+            exit_code,
+            matlab_output,
+            function_name,
+            {x: y for x, y in zip(names, outputs_iter)},
+            return_inputs
+        )
 
-        return MatlabExecutionResult(exit_code, matlab_output, function_name, {x: y for x, y in zip(names, outputs_iter)})
     # exit_code, matlab_output, {x: y for x, y in zip(names, outputs_iter)}
 
     def print_available_functions(self):
@@ -184,10 +197,5 @@ class ExecuteCompiledProject:
                 print(f"  {i}")
 
 
-
-
 if __name__ == "__main__":
-    from pprint import pprint
-
-    matlab_function = ExecuteCompiledProject("./for_redistribution_files_only/covarep_function")
-    pprint(matlab_function.execute_script("lpcrf2is", 1, 10))
+    pass

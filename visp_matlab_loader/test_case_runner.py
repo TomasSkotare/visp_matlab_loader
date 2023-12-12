@@ -17,7 +17,7 @@ if __name__ == "__main__" and __package__ is None:
     sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
     __package__ = os.path.basename(os.path.dirname(os.path.abspath(__file__)))
 
-from . import compiled_project_executor, json_numpy
+from . import compiled_project_executor
 from .find_compiled_projects import CompiledProjectFinder, MatlabProject
 
 class TestCase:
@@ -26,9 +26,9 @@ class TestCase:
     
     This includes the function name, input and output values.
     """
-    function_name: str = None
-    input_list: list = None
-    output_list: list = None   
+    function_name: str = ""
+    input_list: list = ""
+    output_list: list = ""
     
     def __init__(self, function_name, input_list, output_list) -> None:
         self.function_name = function_name
@@ -45,10 +45,10 @@ class TestCaseRunner():
     """
     A class to run test cases on compiled projects.
     """    
-    project: MatlabProject = None
-    project_finder: CompiledProjectFinder = None
+    project: MatlabProject
+    project_finder: CompiledProjectFinder 
     # Declare test cases as a list of TestCase objects
-    test_cases: List[TestCase] = None
+    test_cases: List[TestCase] = []
         
     def check_dirs_exists(self, directories):
         """Checks if the given directories exist."""
@@ -115,7 +115,7 @@ def main():
     tcr = TestCaseRunner(base_directory=os.getcwd())
     print('\n')
     for project in tcr.project_finder.compiled_projects:
-        print('Project name:', project.project_name)
+        print('Project name:', project.name)
         print('Project directory:', project.compiled_directory)
         for test_case in project.test_case_files:
             print('Test case:', test_case)

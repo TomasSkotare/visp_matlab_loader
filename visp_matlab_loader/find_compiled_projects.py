@@ -28,7 +28,7 @@ class MatlabProject:
         return binary_name
     
     @property
-    def project_name(self):
+    def name(self):
         return os.path.basename(self.compiled_directory)
     
     @property
@@ -45,7 +45,7 @@ class MatlabProject:
     
     @property
     def code_directory(self):
-        path = os.path.abspath(os.path.join(self.base_matlab_directory, 'libraries', self.project_name))
+        path = os.path.abspath(os.path.join(self.base_matlab_directory, 'libraries', self.name))
         if os.path.exists(path):
             return path
         print('could not find code directory at', path)
@@ -56,7 +56,7 @@ class MatlabProject:
     def test_case_directory(self):
         # This should be two directories up from the wrapper directory,
         # under tests/project_name/test_cases
-        test_case_dir =  os.path.abspath(os.path.join(self.base_matlab_directory, 'tests', self.project_name))
+        test_case_dir =  os.path.abspath(os.path.join(self.base_matlab_directory, 'tests', self.name))
         if os.path.exists(test_case_dir):
             return test_case_dir
         return None
@@ -81,7 +81,7 @@ class MatlabProject:
         
     def __str__(self):
         message = (
-                f"Compiled files for project '{self.project_name}:' \n\tLocated at '{self.compiled_directory}'.\n "
+                f"Compiled files for project '{self.name}:' \n\tLocated at '{self.compiled_directory}'.\n "
                 f"\tWrapper file is '{self.wrapper_file}', \n\tBinary file is '{self.binary_file}'.\n "
                 f"\tCode found at '{self.code_directory}'.\n"
                 f"\tTest cases are located at '{self.test_case_directory}'."
@@ -97,6 +97,12 @@ class MatlabProject:
 class CompiledProjectFinder:
     directory: str = None
     compiled_projects: list[MatlabProject] = []
+    
+    def get_project(self, project_name):
+        for project in self.compiled_projects:
+            if project.name == project_name:
+                return project
+        return None
     
     def __init__(self, directory, verbose=False) -> None:
         
