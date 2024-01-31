@@ -2,14 +2,12 @@
 # This is a workaround to avoid passing values as text in the console.
 
 from typing import Iterable
-from argon2 import PasswordHasher
 import numpy as np
 from scipy.io import savemat, loadmat
 import os
 import subprocess
 from subprocess import PIPE
 import numbers
-from pprint import pprint
 from . import create_script
 from . import matlab_path_setter
 from .find_compiled_projects import MatlabProject
@@ -38,8 +36,6 @@ class ExecuteCompiledProject:
         ScriptExecutor: An instance of the class
     """
     
-
-
     auto_convert: bool
     verbose: bool
     # The input file stores the inputs to the matlab function, after conversion

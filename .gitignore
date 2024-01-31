@@ -5,3 +5,4 @@ tests/output/*
 visp_matlab_loader/output/*
 matlab/compiled/*
 .ipynb_checkpoints
+Archive/*
