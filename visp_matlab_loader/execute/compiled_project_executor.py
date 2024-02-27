@@ -8,13 +8,12 @@ import os
 import subprocess
 from subprocess import PIPE
 import numbers
-from . import create_script
-from . import matlab_path_setter
-from .find_compiled_projects import MatlabProject
+from ..mat_to_wrapper import create_script
+from .. import matlab_path_setter
 from .matlab_execution_result import MatlabExecutionResult
+from .executor import Executor
 
-
-class ExecuteCompiledProject:
+class ExecuteCompiledProject(Executor):
     """Create a script executor.
 
     The script executor is intended to execute scripts compiled with MATLAB compiler.
@@ -35,19 +34,10 @@ class ExecuteCompiledProject:
     Returns:
         ScriptExecutor: An instance of the class
     """
-    
-    auto_convert: bool
-    verbose: bool
-    # The input file stores the inputs to the matlab function, after conversion
-    input_file: str
-    # LD_LIBRARY_PATH: str
-    available_functions: dict
-    matlab_project: MatlabProject
-    return_inputs: bool
 
     def __init__(
         self,
-        matlab_project: MatlabProject,
+        matlab_project, # TODO Make sure this is a MATLAB project
         auto_convert=True,
         verbose=False,
         input_file=f"{os.getcwd()}/input.mat",
@@ -72,10 +62,7 @@ class ExecuteCompiledProject:
         if self.verbose:
             print(*args)
             
-    def find_available_function(self, search:str):
-        # Search for the function name in the available functions
-        possible_functions = [f for f in self.available_functions.keys() if search in f]
-        return possible_functions
+
         
 
     @staticmethod
@@ -102,12 +89,20 @@ class ExecuteCompiledProject:
         Returns:
             A MATLAB execution result object (MatlabExecutionResult)
         """
+        
+        if self.verbose:
+            print("Executing script", function_name, "with", output_count, "outputs")
+            print('Number of inputs: ', len(args))
+            print('Inputs:')
+            for i, arg in enumerate(args):
+                print(f'  {i}: {arg} of type {type(arg).__name__}')
+                  
 
         if type(args) is not list:
-            self.vprint("Converting to list...")
+            self.vprint("Converting to list for enumeration.")
             args = list(args)
 
-        print(args)
+  
         input = dict()
         input["function_name"] = function_name
         input["output_count"] = output_count
@@ -116,9 +111,10 @@ class ExecuteCompiledProject:
 
         for i, arg in enumerate(args):
             if self.auto_convert:
+                original_type = type(arg).__name__
                 if isinstance(arg, numbers.Real):
-                    conversion_message = f"Input argument {i}: Converting argument to float, was {type(arg).__name__}"
                     arg = float(arg)
+                    conversion_message = f"Input argument {i}: Converting argument to float, was {original_type}"
                 elif isinstance(arg, list):
                     conversion_message = f"Input argument {i}: Found list, attempting conversion if number"
                     # We must verify if this actually works with complex file types.
@@ -128,7 +124,14 @@ class ExecuteCompiledProject:
                         for entry in arg
                     ]
                 else:
-                    conversion_message = f"Input argument {i}: No conversion, type is {type(arg).__name__}"
+                    conversion_message = f"Input argument {i}: No conversion, type is {original_type}"
+
+                final_type = type(arg).__name__
+                conversion_message += f", now {final_type}"
+
+                # If the message is too long, print only the first 100 characters
+                if len(conversion_message) > 100:
+                    conversion_message = conversion_message[:100] + "..."
 
                 self.vprint(conversion_message)
 
@@ -194,4 +197,5 @@ class ExecuteCompiledProject:
 
 
 if __name__ == "__main__":
+    print('This is a library, not a standalone script.')
     pass

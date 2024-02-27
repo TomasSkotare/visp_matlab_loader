@@ -1,9 +1,10 @@
 import os
 import glob
+from typing import Optional
 
 
 class MatlabPathSetter:
-    matlab_root: str = None
+    matlab_root: Optional[str] = None
     matlab_available_installs: list = []
     verbose: bool = False
     
@@ -14,11 +15,15 @@ class MatlabPathSetter:
     # Property to get the MATLAB mcc binary
     @property
     def mcc_binary(self):
+        if self.matlab_root is None:
+            return None
         return os.path.join(self.matlab_root, 'bin', 'mcc')
     
     # Property to get the MATLAB binary
     @property
     def matlab_binary(self):
+        if self.matlab_root is None:
+            return None
         return os.path.join(self.matlab_root, 'bin', 'matlab')
     
     def __init__(self, version=None, verbose=False):

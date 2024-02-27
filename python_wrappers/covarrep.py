@@ -130,14 +130,14 @@ if visp_matlab_loader:
 else:
     print('Package not found')
     
-from visp_matlab_loader.compiled_project_executor import ExecuteCompiledProject
+from visp_matlab_loader.execute.compiled_project_executor import ExecuteCompiledProject
 from visp_matlab_loader.find_compiled_projects import MatlabProject, CompiledProjectFinder   
 
 # Consider to make this an argument
 compiled_projects = CompiledProjectFinder(find_matlab_compiled(directory='.'))
 if verbose:
     print('Found compiled projects:')
-    for project in compiled_projects.compiled_projects:
+    for project in compiled_projects._compiled_projects:
         print(project.name)
 covarep = compiled_projects.get_project('covarep')
 if covarep is None:

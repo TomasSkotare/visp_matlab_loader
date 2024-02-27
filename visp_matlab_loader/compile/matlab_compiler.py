@@ -1,7 +1,6 @@
 """
 This module contains functions for compiling MATLAB projects.
 
-
 """
 import json
 import os
@@ -12,17 +11,16 @@ import sys
 import subprocess
 import traceback
 
+from visp_matlab_loader.mat_to_wrapper import create_script
+
 # Add the parent directory to the system path
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 # TODO: Why does this import fail if I don't do it this way?
-from visp_matlab_loader import create_script, matlab_path_setter
+from visp_matlab_loader import matlab_path_setter
 
 
 class MATLABProjectCompiler:
-    project_path: str = None
-    output_directory: str = None   
-    path_setter: matlab_path_setter.MatlabPathSetter = None
     
     def ensure_directories_exist(self, directories):
         """Creates the given directories if they do not exist. Raises an exception if the parent directory does not exist or if the directory cannot be created."""
@@ -129,10 +127,15 @@ class MATLABProjectCompiler:
         #
         # Additionally, the script will create a JSON file which contains a dictionary
         # of the functions found in the directory, along with their input and output
-        matlab_script, _ = create_script.directory_to_script(self.project_path, 
+        created_script = create_script.directory_to_script(
+            self.project_path, 
             verbose=verbose,
             save_function_location=os.path.join(self.output_directory, "functions.json"),
         )
+        if created_script is None:
+            return 1, "Error creating script"
+        matlab_script, _ = created_script
+        
         # Use the project name for the output wrapper file and write it
         project_output_file = os.path.join(self.output_directory, f"{self.project_name}_wrapper.m")
         self.write_text_to_file(project_output_file, matlab_script)
@@ -251,70 +254,3 @@ class MatlabCompiler:
             error_traceback = traceback.format_exc()
             return 1, f"Return code: {e.returncode}\nError message: {error_message}\nTraceback: {error_traceback}\nOutput:\n{e.output}\n\nStderr:\n{e.stderr}"
 
-
-# def select_random_function(functions):
-#     """Select a random function from the dictionary."""
-#     function_names = list(functions.keys())
-#     if not function_names:
-#         raise ValueError("No function names found.")
-#     return function_names[np.random.randint(0, len(function_names))]
-
-
-# def randomize_inputs(input_count):
-#     """Generate a list of random integers."""
-#     return [np.random.randint(0, 100) for _ in range(input_count)]
-
-
-# def execute_random_function(target_dir, project_name):
-#     """Execute a random function from a JSON file."""
-#     functions = load_functions(target_dir)
-#     random_function_name = select_random_function(functions)
-#     print("Random function:", random_function_name)
-
-#     input_count = len(functions[random_function_name]["input"])
-#     output_count = len(functions[random_function_name]["output"])
-#     print(
-#         "Function has inputs with name: ",
-#         functions[random_function_name]["input"],
-#         "And outputs with name: ",
-#         functions[random_function_name]["output"],
-#     )
-
-#     input_args = randomize_inputs(input_count)
-#     print("Randomized input arguments:", input_args)
-
-#     executable_path = os.path.join(target_dir, project_name)
-#     execute_script.ScriptExecutor(
-#         executable_path,
-#         function_dict_location=os.path.join(target_dir, "functions.json"),
-#     ).execute_script(random_function_name, output_count, *input_args)
-
-
-
-    
-
-
-
-
-
-# def test_script(target_dir, project_name):
-#     print("Testing execution...")
-
-#     try:
-#         execute_random_function(target_dir, project_name)
-#     except Exception as e:
-#         print("Failed to execute function... This could mean nothing!\nMessage:", e)
-
-#     print("Done testing execution.")
-
-
-# def main():
-#     base_dir = "./matlab/libraries/"
-#     for name in os.listdir(base_dir):
-#         if os.path.isdir(os.path.join(base_dir, name)):
-#             print(f"Testing {name}")
-#             compile_project(os.path.join(base_dir, name), f"./tests/output/{name}/")
-
-
-# if __name__ == "__main__":
-#     main()

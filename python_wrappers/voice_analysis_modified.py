@@ -98,7 +98,7 @@ else:
     print(f'File {args.filename} does not exist, aborting')
     sys.exit(-1)
     
-from visp_matlab_loader.compiled_project_executor import ExecuteCompiledProject
+from visp_matlab_loader.execute.compiled_project_executor import ExecuteCompiledProject
 from visp_matlab_loader.find_compiled_projects import MatlabProject, CompiledProjectFinder   
 
 # Consider to make this an argument
@@ -106,7 +106,7 @@ compiled_projects = CompiledProjectFinder(find_matlab_compiled())
 print(compiled_projects)
 if verbose:
     print('Found compiled projects:')
-    for project in compiled_projects.compiled_projects:
+    for project in compiled_projects._compiled_projects:
         print(project)
         print(project.name)
 va_toolbox = compiled_projects.get_project('voice_analysis_toolbox')

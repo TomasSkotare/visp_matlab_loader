@@ -17,7 +17,7 @@ if __name__ == "__main__" and __package__ is None:
     sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
     __package__ = os.path.basename(os.path.dirname(os.path.abspath(__file__)))
 
-from . import compiled_project_executor
+from .execute import compiled_project_executor
 from .find_compiled_projects import CompiledProjectFinder, MatlabProject
 
 class TestCase:

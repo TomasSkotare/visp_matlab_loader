@@ -96,7 +96,7 @@ def directory_to_script(directory_path:str, verbose=False, excluded_files = ['st
             return
         vprint(f"Reading {file}")
 
-        contents = re.sub("\s[.]{3}\s*\\n", " ", contents)
+        contents = re.sub(r"\s[.]{3}\s*\\n", " ", contents)
 
         # This is an attempt for a regex to match all different types of MATLAB function signatures.
         # MATLAB functions may not take any input, and may not return anything.
