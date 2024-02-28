@@ -10,6 +10,7 @@ if TYPE_CHECKING:
     from visp_matlab_loader.execute.compiled_project_executor import MatlabExecutor
     from visp_matlab_loader.project.matlab_function import MatlabFunction
 
+
 class MatlabProject:
     # Property for binary file for the matlab project
     @property

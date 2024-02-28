@@ -30,7 +30,12 @@ def contains_line_breaks(s):
     return bool(re.search(r"\n|\r\n|\r", s))
 
 
-def directory_to_script(directory_path: str, verbose=False, excluded_files=["startup.m"], save_function_location=None):
+def directory_to_script(
+    directory_path: str,
+    verbose=False,
+    excluded_files=["startup.m"],
+    save_function_location=None,
+):
     """Create a MATLAB function wrapper for a given directory.
 
     The intent is to scan through all .m files in the given directory (and its subdirectories),

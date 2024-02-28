@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 # Note that we must have input.mat in some directory.
 # This is a workaround to avoid passing values as text in the console.
 
@@ -63,7 +64,6 @@ class MatlabExecutor:
         self.path_setter.verify_paths()
         self.return_inputs = return_inputs
         self.function_json = function_json
-
 
     def vprint(self, *args):
         if self.verbose:

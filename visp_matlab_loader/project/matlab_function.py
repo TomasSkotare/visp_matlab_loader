@@ -5,6 +5,7 @@ import numpy as np
 
 from visp_matlab_loader.project.matlab_project import MatlabProject
 
+
 class MatlabFunction:
     """This represents a MATLAB function that has been compiled and can be executed.
 
