@@ -1,10 +1,9 @@
 import glob
 import os
-from typing import Optional
 
 
 class MatlabPathSetter:
-    matlab_root: Optional[str] = None
+    matlab_root: str | None = None
     matlab_available_installs: list = []
     verbose: bool = False
 
