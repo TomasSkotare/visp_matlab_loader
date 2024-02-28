@@ -6,9 +6,10 @@ import json
 import os
 import shlex
 import shutil
-import sys
+
 # import numpy as np
 import subprocess
+import sys
 import traceback
 
 from visp_matlab_loader.mat_to_wrapper import create_script
@@ -21,7 +22,6 @@ from visp_matlab_loader import matlab_path_setter
 
 
 class MATLABProjectCompiler:
-    
     def ensure_directories_exist(self, directories):
         """Creates the given directories if they do not exist. Raises an exception if the parent directory does not exist or if the directory cannot be created."""
         for directory in directories:
@@ -33,32 +33,31 @@ class MATLABProjectCompiler:
                     os.makedirs(directory)
                 except Exception as e:
                     raise Exception(f"Could not create directory {directory}. Error: {str(e)}")
-    
+
     # Property of project name, which is the final directory in the project_path:
     @property
     def project_name(self):
         return os.path.basename(self.project_path)
-    
+
     def __init__(self, project_path, output_path, path_setter=None) -> None:
         project_path = os.path.abspath(project_path)
         output_path = os.path.abspath(output_path)
-        
+
         self.project_path = project_path
         self.output_directory = output_path
-        
+
         self.ensure_directories_exist([project_path, output_path])
-        
+
         self.path_setter = path_setter or matlab_path_setter.MatlabPathSetter()
         self.path_setter.verify_paths()
-        
-        
+
     @staticmethod
     def get_all_subdirectories(dirs):
         """
         Gets all subdirectories of the given directories.
-        
+
         However, it will not include any directories named '.git'.
-        
+
         Args:
             dirs: A list of directories to get subdirectories of.
         """
@@ -72,7 +71,7 @@ class MATLABProjectCompiler:
                     all_dirs.add(quoted_root)
 
         return list(all_dirs)
-    
+
     @staticmethod
     def write_text_to_file(file_path, text):
         try:
@@ -86,39 +85,38 @@ class MATLABProjectCompiler:
         except Exception as e:
             # Print an error message for any other exceptions
             print(f"An error occurred: {str(e)}")
-            
+
     @staticmethod
     def create_directory(directory_path):
         # Check if the directory does not exist
         if not os.path.exists(directory_path):
             # Create the directory
-            os.makedirs(directory_path)            
-            
-    @staticmethod            
+            os.makedirs(directory_path)
+
+    @staticmethod
     def load_functions(target_dir):
         """Load functions from a JSON file.
         This functions file is generated when using the MATLAB compiler function
-        to compile a MATLAB script, and includes all available functions.        
+        to compile a MATLAB script, and includes all available functions.
         """
         json_path = os.path.join(target_dir, "functions.json")
-        
+
         if not os.path.exists(json_path):
             raise FileNotFoundError(f"No such file: '{json_path}'")
-        return create_script.json_to_dict(json_path)            
-    
+        return create_script.json_to_dict(json_path)
+
     @staticmethod
     def _convert_to_relative_paths(absolute_paths):
         current_path = os.getcwd()
         relative_paths = [os.path.relpath(path, current_path) for path in absolute_paths]
-        return relative_paths    
-    
+        return relative_paths
+
     def compile_project(self, verbose=False):
-        
         # Create the target directory if it does not exist
         self.create_directory(self.output_directory)
-        
-        vprint = print if verbose else lambda *args, **kwargs: None        
-        
+
+        vprint = print if verbose else lambda *args, **kwargs: None
+
         # Convert the project directory to a MATLAB script.
         # This will create a "wrapper" script which enables the calling of any
         # function found in the directory or subdirectory.
@@ -128,25 +126,25 @@ class MATLABProjectCompiler:
         # Additionally, the script will create a JSON file which contains a dictionary
         # of the functions found in the directory, along with their input and output
         created_script = create_script.directory_to_script(
-            self.project_path, 
+            self.project_path,
             verbose=verbose,
             save_function_location=os.path.join(self.output_directory, "functions.json"),
         )
         if created_script is None:
             return 1, "Error creating script"
         matlab_script, _ = created_script
-        
+
         # Use the project name for the output wrapper file and write it
         project_output_file = os.path.join(self.output_directory, f"{self.project_name}_wrapper.m")
         self.write_text_to_file(project_output_file, matlab_script)
-        
+
         # Get all subdirectories of the project directory
         if isinstance(self.project_path, list):
-            project_dir = [os.path.abspath(x) for x in project_dir if os.path.isdir(x)]
+            project_dir = [os.path.abspath(x) for x in self.project_path if os.path.isdir(x)]
         else:
             project_dir = [os.path.abspath(self.project_path)]
         project_dir = self.get_all_subdirectories(project_dir)
-        
+
         vprint("project_output_file:", project_output_file)
         vprint("target_dir:", self.output_directory)
         vprint("project_name:", self.project_name)
@@ -156,10 +154,11 @@ class MATLABProjectCompiler:
 
         # Compile the script
         compiler_code, compiler_message = MatlabCompiler(self.path_setter).compile(
-            project_output_file, self.output_directory, 
-            self.project_name, 
-            additional_dirs=project_dir, 
-            create_output_directory=True
+            project_output_file,
+            self.output_directory,
+            self.project_name,
+            additional_dirs=project_dir,
+            create_output_directory=True,
         )
         vprint("Compiled with code:", compiler_code)
         vprint("Message:", compiler_message)
@@ -168,28 +167,31 @@ class MATLABProjectCompiler:
 
 class MatlabCompiler:
     matlab_path: matlab_path_setter.MatlabPathSetter
-    
+
     def __init__(self, matlab_path=None):
         if not matlab_path:
             matlab_path = matlab_path_setter.MatlabPathSetter()
         self.matlab_path = matlab_path
 
-    @staticmethod        
+    @staticmethod
     def file_exists(path, filename):
         full_path = os.path.join(path, filename)
-        return os.path.isfile(full_path)        
+        return os.path.isfile(full_path)
 
-    def compile(self, script_path, output_dir=None, output_file=None, 
-                additional_dirs=None, create_output_directory=False, 
-                force_output=False, verbose=False):
-        
-        vprint = print if verbose else lambda *args, **kwargs: None        
-
+    def compile(
+        self,
+        script_path,
+        output_dir=None,
+        output_file=None,
+        additional_dirs=None,
+        create_output_directory=False,
+        force_output=False,
+        verbose=False,
+    ):
+        vprint = print if verbose else lambda *args, **kwargs: None
 
         if not os.path.isfile(script_path):
             return 1, f"Input file {script_path} does not exist."
-
-
 
         # Get the script name without the extension
         script_name = os.path.splitext(os.path.basename(script_path))[0]
@@ -204,40 +206,40 @@ class MatlabCompiler:
 
         if not force_output and self.__class__.file_exists(output_dir, output_file):
             return 1, f"Output file {output_file} already exists in {output_dir}."
-        
+
         if not os.path.isdir(output_dir):
             if create_output_directory:
-                vprint('Creating output directory')
+                vprint("Creating output directory")
                 os.makedirs(output_dir)
             else:
                 return 1, f"Output directory {output_dir} does not exist."
 
         matlab_bin = self.matlab_path.mcc_binary
 
-        command = [matlab_bin, '-m', '-v', '-o', output_file, '-d', output_dir, script_path]
+        command = [matlab_bin, "-m", "-v", "-o", output_file, "-d", output_dir, script_path]
 
         if additional_dirs:
             for directory in additional_dirs:
-                command.extend(['-I', directory])
+                command.extend(["-I", directory])
 
         try:
             result = subprocess.run(command, check=True, capture_output=True, text=True)
             output_result = result.stdout
             output_error = result.stderr
             if output_error is None or len(output_error) == 0:
-                output_error = 'None'
-            
+                output_error = "None"
+
             # Create a metadata file
             metadata = {
-                'script_path': script_path,
-                'output_dir': output_dir,
-                'output_file': output_file,
-                'additional_dirs': additional_dirs,
-                'create_output_directory': create_output_directory,
-                'command': command
+                "script_path": script_path,
+                "output_dir": output_dir,
+                "output_file": output_file,
+                "additional_dirs": additional_dirs,
+                "create_output_directory": create_output_directory,
+                "command": command,
             }
 
-            with open(os.path.join(output_dir, 'metadata.json'), 'w') as f:
+            with open(os.path.join(output_dir, "metadata.json"), "w") as f:
                 json.dump(metadata, f, indent=4)
 
             # Copy the original input file to the output directory
@@ -246,11 +248,13 @@ class MatlabCompiler:
                 shutil.copy(script_path, output_dir)
             except Exception as e:
                 vprint(f"Error occurred: {str(e)}")
-            vprint('Successful...')
+            vprint("Successful...")
 
             return 0, "Compilation successful.\nOutput result:\n" + output_result + "\nOutput error:\n" + output_error
         except subprocess.CalledProcessError as e:
             error_message = f"mcc command FAILED with message: {str(e)}"
             error_traceback = traceback.format_exc()
-            return 1, f"Return code: {e.returncode}\nError message: {error_message}\nTraceback: {error_traceback}\nOutput:\n{e.output}\n\nStderr:\n{e.stderr}"
-
+            return (
+                1,
+                f"Return code: {e.returncode}\nError message: {error_message}\nTraceback: {error_traceback}\nOutput:\n{e.output}\n\nStderr:\n{e.stderr}",
+            )

@@ -72,11 +72,6 @@ class CovarepWrapper:
         execution_result = executor.execute_script(function_name, output_count, *inputs)
         return execution_result
     
-    
-    
-
-
-
 # Create default test code including main function:
 
 def main(path='../matlab/compiled/'):

@@ -1,5 +1,8 @@
-import numpy as np
+import os
+import tempfile
+
 import json_tricks
+import numpy as np
 
 
 class MatlabExecutionResult:
@@ -38,7 +41,7 @@ class MatlabExecutionResult:
         execution_message: str,
         function_name: str,
         outputs: dict,
-        inputs = [],  # Optional!
+        inputs=[],  # Optional!
     ):
         self.return_code = return_code
         self.execution_message = execution_message
@@ -73,13 +76,9 @@ class MatlabExecutionResult:
                     print(f"Different keys in dictionaries")
                 return False
             for key in outputs1:
-                if not __class__.__compare_outputs(
-                    outputs1[key], outputs2.get(key, None), verbose
-                ):
+                if not __class__.__compare_outputs(outputs1[key], outputs2.get(key, None), verbose):
                     if verbose:
-                        print(
-                            f"Different values for key {key}: {outputs1[key]} and {outputs2.get(key, None)}"
-                        )
+                        print(f"Different values for key {key}: {outputs1[key]} and {outputs2.get(key, None)}")
                     return False
         elif isinstance(outputs1, list):
             if len(outputs1) != len(outputs2):
@@ -118,9 +117,7 @@ class MatlabExecutionResult:
         return not self.__eq__(other)
 
     def to_json(self, file=None):
-        json_string = json_tricks.dumps(
-            self.__dict__, allow_nan=True, indent=4, sort_keys=True
-        )
+        json_string = json_tricks.dumps(self.__dict__, allow_nan=True, indent=4, sort_keys=True)
         if file:
             with open(file, "w") as f:
                 f.write(str(json_string))
@@ -135,3 +132,22 @@ class MatlabExecutionResult:
         data = json_tricks.loads(json_string)
         data["outputs"] = dict(data["outputs"])
         return cls(**data)
+
+    def verify_serialization(self):
+        # Create a temporary file
+        with tempfile.NamedTemporaryFile(suffix=".json", delete=False) as temp:
+            temp_file_name = temp.name
+
+        try:
+            # Write to the temporary file
+            self.to_json(temp_file_name)
+
+            # Load from the temporary file
+            loaded_self = type(self).from_json(file=temp_file_name)
+
+            # Compare the results
+            assert loaded_self == self, "Loaded result does not match the original result."
+
+        finally:
+            # Delete the temporary file
+            os.remove(temp_file_name)

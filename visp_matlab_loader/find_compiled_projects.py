@@ -1,7 +1,9 @@
 import fnmatch
 import os
 from typing import Optional
+
 from visp_matlab_loader.project import matlab_project
+
 
 def find_files(directory, pattern):
     for root, _, files in os.walk(directory):
@@ -11,38 +13,35 @@ def find_files(directory, pattern):
                 yield filename
 
 
-    
 class CompiledProjectFinder:
-
     @property
     def found_projects(self):
         return self._compiled_projects
-            
+
     def has_project(self, project_name) -> bool:
         return any([project.name == project_name for project in self._compiled_projects])
-            
+
     def get_project(self, project_name) -> matlab_project.MatlabProject:
         for project in self._compiled_projects:
             if project.name == project_name:
                 return project
         raise ValueError(f"Could not find project with name '{project_name}'")
-    
+
     def __init__(self, directory, verbose=False) -> None:
         self._compiled_projects: list[matlab_project.MatlabProject] = []
-        
+
         self.directory = directory
         # Check if the directory exists
         if not os.path.exists(self.directory):
             raise FileNotFoundError(f"No such directory: '{self.directory}'")
-        
-        self._compiled_projects = [matlab_project.MatlabProject(x) for x in find_files(self.directory, '*_wrapper.m')]
-        
+
+        self._compiled_projects = [matlab_project.MatlabProject(x) for x in find_files(self.directory, "*_wrapper.m")]
+
         if verbose:
             for wrapper_file in self._compiled_projects:
                 print(wrapper_file.binary_file)
-            
 
-        
+
 # Test main function
 def main():
     # Get the directory of the current module
@@ -51,13 +50,9 @@ def main():
     parent_directory = os.path.dirname(current_module_path)
     # Assume files are in parent / tests / output:
     # library_directory = os.path.join(parent_directory, 'tests', 'output')
-    
+
     # compiled_project_finder = CompiledProjectFinder(library_directory)
-    
-    
+
 
 if __name__ == "__main__":
     main()
-        
-        
-    

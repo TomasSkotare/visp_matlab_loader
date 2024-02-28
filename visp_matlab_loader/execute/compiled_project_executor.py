@@ -1,19 +1,22 @@
 # Note that we must have input.mat in some directory.
 # This is a workaround to avoid passing values as text in the console.
 
-from typing import Iterable
-import numpy as np
-from scipy.io import savemat, loadmat
+import numbers
 import os
 import subprocess
 from subprocess import PIPE
-import numbers
-from ..mat_to_wrapper import create_script
-from .. import matlab_path_setter
-from .matlab_execution_result import MatlabExecutionResult
-from .executor import Executor
+from typing import Iterable
 
-class ExecuteCompiledProject(Executor):
+import numpy as np
+from scipy.io import loadmat, savemat
+
+from .. import matlab_path_setter
+from ..mat_to_wrapper import create_script
+from .abstract_executor import AbstractExecutor
+from .matlab_execution_result import MatlabExecutionResult
+
+
+class ExecuteCompiledProject(AbstractExecutor):
     """Create a script executor.
 
     The script executor is intended to execute scripts compiled with MATLAB compiler.
@@ -37,12 +40,12 @@ class ExecuteCompiledProject(Executor):
 
     def __init__(
         self,
-        matlab_project, # TODO Make sure this is a MATLAB project
+        matlab_project,  # TODO Make sure this is a MATLAB project
         auto_convert=True,
         verbose=False,
         input_file=f"{os.getcwd()}/input.mat",
         function_json=None,
-        return_inputs = False
+        return_inputs=False,
     ) -> None:
         self.matlab_project = matlab_project
         self.auto_convert = auto_convert
@@ -61,9 +64,6 @@ class ExecuteCompiledProject(Executor):
     def vprint(self, *args):
         if self.verbose:
             print(*args)
-            
-
-        
 
     @staticmethod
     def iterate_or_return_single(obj):
@@ -89,20 +89,18 @@ class ExecuteCompiledProject(Executor):
         Returns:
             A MATLAB execution result object (MatlabExecutionResult)
         """
-        
+
         if self.verbose:
             print("Executing script", function_name, "with", output_count, "outputs")
-            print('Number of inputs: ', len(args))
-            print('Inputs:')
+            print("Number of inputs: ", len(args))
+            print("Inputs:")
             for i, arg in enumerate(args):
-                print(f'  {i}: {arg} of type {type(arg).__name__}')
-                  
+                print(f"  {i}: {arg} of type {type(arg).__name__}")
 
         if type(args) is not list:
             self.vprint("Converting to list for enumeration.")
             args = list(args)
 
-  
         input = dict()
         input["function_name"] = function_name
         input["output_count"] = output_count
@@ -118,9 +116,13 @@ class ExecuteCompiledProject(Executor):
                 elif isinstance(arg, list):
                     conversion_message = f"Input argument {i}: Found list, attempting conversion if number"
                     # We must verify if this actually works with complex file types.
-                    
+
                     arg = [
-                        float(entry) if isinstance(entry, numbers.Real) else entry if isinstance(entry, numbers.Complex) else entry
+                        float(entry)
+                        if isinstance(entry, numbers.Real)
+                        else entry
+                        if isinstance(entry, numbers.Complex)
+                        else entry
                         for entry in arg
                     ]
                 else:
@@ -180,7 +182,7 @@ class ExecuteCompiledProject(Executor):
             matlab_output,
             function_name,
             {x: y for x, y in zip(names, outputs_iter)},
-            return_inputs
+            return_inputs,
         )
 
     # exit_code, matlab_output, {x: y for x, y in zip(names, outputs_iter)}
@@ -197,5 +199,5 @@ class ExecuteCompiledProject(Executor):
 
 
 if __name__ == "__main__":
-    print('This is a library, not a standalone script.')
+    print("This is a library, not a standalone script.")
     pass

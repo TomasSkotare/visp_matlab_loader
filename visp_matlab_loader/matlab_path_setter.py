@@ -1,5 +1,5 @@
-import os
 import glob
+import os
 from typing import Optional
 
 
@@ -7,25 +7,25 @@ class MatlabPathSetter:
     matlab_root: Optional[str] = None
     matlab_available_installs: list = []
     verbose: bool = False
-    
+
     def vprint(self, string: str):
         if self.verbose:
             print(string)
-    
+
     # Property to get the MATLAB mcc binary
     @property
     def mcc_binary(self):
         if self.matlab_root is None:
             return None
-        return os.path.join(self.matlab_root, 'bin', 'mcc')
-    
+        return os.path.join(self.matlab_root, "bin", "mcc")
+
     # Property to get the MATLAB binary
     @property
     def matlab_binary(self):
         if self.matlab_root is None:
             return None
-        return os.path.join(self.matlab_root, 'bin', 'matlab')
-    
+        return os.path.join(self.matlab_root, "bin", "matlab")
+
     def __init__(self, version=None, verbose=False):
         self.matlab_root = self.find_latest_matlab_or_runtime(version)
         self.set_ld_library_path()
@@ -34,29 +34,24 @@ class MatlabPathSetter:
     def find_latest_matlab_or_runtime(self, version):
         # Get a list of all MATLAB installations
         matlab_dirs = glob.glob("/usr/local/MATLAB/R20*")
-        matlab_dirs.sort(
-            reverse=True
-        )  # Sort in reverse order to get the latest version first
+        matlab_dirs.sort(reverse=True)  # Sort in reverse order to get the latest version first
         if self.verbose:
             print("Available MATLAB installations:")
             for dir in matlab_dirs:
                 print(dir)
 
         self.matlab_available_installs = matlab_dirs
-        
+
         # Get a list of all MATLAB Runtime environments
         runtime_dirs = glob.glob("/usr/local/MATLAB/MATLAB_Runtime/R20*")
-        runtime_dirs.sort(
-            reverse=True
-        )  # Sort in reverse order to get the latest version first
+        runtime_dirs.sort(reverse=True)  # Sort in reverse order to get the latest version first
         if self.verbose:
             print("Available MATLAB Runtime environments:")
             if runtime_dirs is None:
-                print('None')
+                print("None")
             else:
                 for dir in runtime_dirs:
                     print(dir)
-       
 
         # If a specific version was requested, try to use it
         if version is not None:
@@ -74,8 +69,6 @@ class MatlabPathSetter:
             return runtime_dirs[0]
         else:
             return None
-        
-    
 
     def set_ld_library_path(self):
         if self.matlab_root is None:
@@ -109,9 +102,9 @@ class MatlabPathSetter:
 
     def verify_paths(self):
         if self.matlab_root is None:
-            self.vprint('Error: MATLAB installation or MATLAB Runtime environment not found!')
+            self.vprint("Error: MATLAB installation or MATLAB Runtime environment not found!")
             return False
-        
+
         # Get the current LD_LIBRARY_PATH
         ld_library_path = os.getenv("LD_LIBRARY_PATH", "")
 

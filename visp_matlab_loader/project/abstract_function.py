@@ -1,5 +1,7 @@
 from abc import ABC, abstractmethod
-from typing import Any, Dict, List
+from typing import Any, List, OrderedDict
+
+from visp_matlab_loader.execute.matlab_execution_result import MatlabExecutionResult
 
 
 class AbstractFunction(ABC):
@@ -14,7 +16,7 @@ class AbstractFunction(ABC):
     @abstractmethod
     def output_count(self) -> int:
         pass
-    
+
     @abstractmethod
     def override_output_count(self, count: int):
         pass
@@ -24,17 +26,14 @@ class AbstractFunction(ABC):
         self,
         project: Any,
         function_name: str,
-        inputs: Dict[str, type],
+        # inputs should be in order of the function signature
+        inputs: OrderedDict[str, type],
         output_names: List[str],
     ) -> None:
         pass
 
     @abstractmethod
-    def execute(self, outputs=None, **kwargs):
-        pass
-
-    @abstractmethod
-    def execute_noname(self, outputs=None, *args):
+    def execute(self, outputs=None, *args, **kwargs) -> MatlabExecutionResult:
         pass
 
     @abstractmethod

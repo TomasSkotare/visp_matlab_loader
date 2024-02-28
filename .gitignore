@@ -6,3 +6,9 @@ visp_matlab_loader/output/*
 matlab/compiled/*
 .ipynb_checkpoints
 Archive/*
+*.zip
+settings.json
+results.mat
+input.mat
+out.json
+output.json
