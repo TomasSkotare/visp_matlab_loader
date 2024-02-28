@@ -12,5 +12,16 @@ class AbstractProject(ABC):
 
     @property
     @abstractmethod
-    def name(self):
+    def name(self) -> str:
         pass
+
+
+    @property
+    @abstractmethod
+    def function_json(self) -> str:
+        pass
+    
+    @property
+    @abstractmethod
+    def binary_file(self) -> str:
+        pass    

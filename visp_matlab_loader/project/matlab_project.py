@@ -2,7 +2,8 @@ import json
 import os
 from glob import glob
 from types import NoneType
-from typing import Dict, OrderedDict
+from typing import Dict, LiteralString, OrderedDict
+
 
 from visp_matlab_loader.execute.abstract_executor import AbstractExecutor
 from visp_matlab_loader.project.abstract_function import AbstractFunction
@@ -12,7 +13,7 @@ from visp_matlab_loader.project.abstract_project import AbstractProject
 class MatlabProject(AbstractProject):
     # Property for binary file for the matlab project
     @property
-    def binary_file(self):
+    def binary_file(self) -> str:
         # Get name without the '_wrapper.m' ending:
         binary_name = self.wrapper_file.replace("_wrapper.m", "")
 
@@ -23,11 +24,11 @@ class MatlabProject(AbstractProject):
         return binary_name
 
     @property
-    def name(self):
+    def name(self) -> str:
         return os.path.basename(self.compiled_directory)
 
     @property
-    def base_matlab_directory(self):
+    def base_matlab_directory(self) -> str:
         return os.path.abspath(os.path.join(self.wrapper_file, "..", "..", ".."))
 
     @property
@@ -37,7 +38,7 @@ class MatlabProject(AbstractProject):
         return self._functions
 
     @property
-    def compiled_directory(self):
+    def compiled_directory(self) -> str:
         """
         The directory for the compiled project,
         where the binary and wrapper file resides
@@ -45,15 +46,14 @@ class MatlabProject(AbstractProject):
         return os.path.abspath(os.path.dirname(self.wrapper_file))
 
     @property
-    def code_directory(self):
+    def code_directory(self) -> str | None:
         path = os.path.abspath(os.path.join(self.base_matlab_directory, "libraries", self.name))
         if os.path.exists(path):
             return path
-        print("could not find code directory at", path)
         return None
 
     @property
-    def test_case_directory(self):
+    def test_case_directory(self) -> str | None:
         # This should be two directories up from the wrapper directory,
         # under tests/project_name/test_cases
         test_case_dir = os.path.abspath(os.path.join(self.base_matlab_directory, "tests", self.name))
@@ -62,7 +62,7 @@ class MatlabProject(AbstractProject):
         return None
 
     @property
-    def function_json(self):
+    def function_json(self) -> str:
         # function.json should be in the same directory as the binary file
         return os.path.join(self.compiled_directory, "functions.json")
 
@@ -79,7 +79,6 @@ class MatlabProject(AbstractProject):
         self,
         verbose: bool = True,
         auto_convert: bool = True,
-        input_file: str = f"{os.getcwd()}/input.mat",
     ) -> AbstractExecutor:
         from ..execute.compiled_project_executor import ExecuteCompiledProject
 
@@ -88,7 +87,6 @@ class MatlabProject(AbstractProject):
                 self,
                 auto_convert=auto_convert,
                 verbose=verbose,
-                input_file=input_file,
                 function_json=self.function_json,
                 return_inputs=True,
             )

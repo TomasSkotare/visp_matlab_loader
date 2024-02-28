@@ -5,10 +5,13 @@ import numbers
 import os
 import subprocess
 from subprocess import PIPE
+import tempfile
 from typing import Iterable
 
 import numpy as np
 from scipy.io import loadmat, savemat
+
+from visp_matlab_loader.project.abstract_project import AbstractProject
 
 from .. import matlab_path_setter
 from ..mat_to_wrapper import create_script
@@ -40,17 +43,15 @@ class ExecuteCompiledProject(AbstractExecutor):
 
     def __init__(
         self,
-        matlab_project,  # TODO Make sure this is a MATLAB project
+        matlab_project: AbstractProject,  # TODO Make sure this is a MATLAB project
         auto_convert=True,
         verbose=False,
-        input_file=f"{os.getcwd()}/input.mat",
         function_json=None,
         return_inputs=False,
     ) -> None:
         self.matlab_project = matlab_project
         self.auto_convert = auto_convert
         self.verbose = verbose
-        self.input_file = input_file
         self.path_setter = matlab_path_setter.MatlabPathSetter()
         self.path_setter.verify_paths()
         self.return_inputs = return_inputs
@@ -140,25 +141,32 @@ class ExecuteCompiledProject(AbstractExecutor):
             varargin[i] = arg
 
         input["varargin"] = varargin
-        savemat("input.mat", input)
-        self.vprint(input)
-        custom_environment = os.environ.copy()
+        with tempfile.NamedTemporaryFile(suffix=".mat", delete=True) as temp_file:
+            input_file = temp_file.name
 
-        stream = subprocess.Popen(
-            [self.matlab_project.binary_file, self.input_file],
-            env=custom_environment,
-            stdout=PIPE,
-        )
-        exit_code = stream.wait()
-        self.vprint(f"MATLAB exited with code: {exit_code}")
-        # Ensure output is string!
-        matlab_output = stream.communicate()[0]
-        matlab_output = matlab_output.decode("utf-8")
-        if exit_code != 0:
-            self.vprint("Error: Nonzero MATLAB exit code, no results returned!")
-            return MatlabExecutionResult(exit_code, matlab_output, function_name, dict())
+            # Save input to the file
+            savemat(input_file, input)
+            self.vprint(input)
 
-        res = loadmat("results.mat", squeeze_me=True, simplify_cells=True)
+            custom_environment = os.environ.copy()
+
+            stream = subprocess.Popen(
+                [self.matlab_project.binary_file, input_file],
+                env=custom_environment,
+                stdout=PIPE,
+            )
+            exit_code = stream.wait()
+            self.vprint(f"MATLAB exited with code: {exit_code}")
+            # Ensure output is string!
+            matlab_output = stream.communicate()[0]
+            matlab_output = matlab_output.decode("utf-8")
+            if exit_code != 0:
+                self.vprint("Error: Nonzero MATLAB exit code, no results returned!")
+                return MatlabExecutionResult(exit_code, matlab_output, function_name, dict())
+
+            # Load results from "results.mat" and then delete the file
+            res = loadmat("results.mat", squeeze_me=True, simplify_cells=True)
+            os.remove("results.mat")
         names, outputs = res["results"]
         # Due to how we squeeze and simplify the cells, the output array can be a numpy
         # array shaped in unexpected ways.
