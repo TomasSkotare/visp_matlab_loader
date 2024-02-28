@@ -1,3 +1,4 @@
+from __future__ import annotations
 # Note that we must have input.mat in some directory.
 # This is a workaround to avoid passing values as text in the console.
 
@@ -11,15 +12,15 @@ from typing import Iterable
 import numpy as np
 from scipy.io import loadmat, savemat
 
-from visp_matlab_loader.project.abstract_project import AbstractProject
+from visp_matlab_loader.project.matlab_project import MatlabProject
+
 
 from .. import matlab_path_setter
 from ..mat_to_wrapper import create_script
-from .abstract_executor import AbstractExecutor
 from .matlab_execution_result import MatlabExecutionResult
 
 
-class ExecuteCompiledProject(AbstractExecutor):
+class MatlabExecutor:
     """Create a script executor.
 
     The script executor is intended to execute scripts compiled with MATLAB compiler.
@@ -41,9 +42,15 @@ class ExecuteCompiledProject(AbstractExecutor):
         ScriptExecutor: An instance of the class
     """
 
+    @property
+    def available_functions(self):
+        if not self._available_functions and self.function_json:
+            self._available_functions = create_script.json_to_dict(self.function_json)
+        return self._available_functions
+
     def __init__(
         self,
-        matlab_project: AbstractProject,  # TODO Make sure this is a MATLAB project
+        matlab_project: MatlabProject,  # TODO Make sure this is a MATLAB project
         auto_convert=True,
         verbose=False,
         function_json=None,
@@ -55,12 +62,8 @@ class ExecuteCompiledProject(AbstractExecutor):
         self.path_setter = matlab_path_setter.MatlabPathSetter()
         self.path_setter.verify_paths()
         self.return_inputs = return_inputs
+        self.function_json = function_json
 
-        if not function_json:
-            function_json = matlab_project.function_json
-
-        if function_json:
-            self.available_functions = create_script.json_to_dict(function_json)
 
     def vprint(self, *args):
         if self.verbose:

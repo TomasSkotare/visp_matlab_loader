@@ -1,12 +1,11 @@
+from __future__ import annotations
 from typing import List, OrderedDict
 
 import numpy as np
 
-from .abstract_function import AbstractFunction
-from .abstract_project import AbstractProject
+from visp_matlab_loader.project.matlab_project import MatlabProject
 
-
-class MatlabFunction(AbstractFunction):
+class MatlabFunction:
     """This represents a MATLAB function that has been compiled and can be executed.
 
     Raises:
@@ -26,7 +25,7 @@ class MatlabFunction(AbstractFunction):
 
     def __init__(
         self,
-        matlab_project: AbstractProject,
+        matlab_project: MatlabProject,
         function_name: str,
         inputs: OrderedDict[str, type],
         output_names: List[str],

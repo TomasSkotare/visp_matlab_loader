@@ -130,7 +130,7 @@ if visp_matlab_loader:
 else:
     print('Package not found')
     
-from visp_matlab_loader.execute.compiled_project_executor import ExecuteCompiledProject
+from visp_matlab_loader.execute.compiled_project_executor import MatlabExecutor
 from visp_matlab_loader.find_compiled_projects import MatlabProject, CompiledProjectFinder   
 
 # Consider to make this an argument
@@ -145,7 +145,7 @@ if covarep is None:
     sys.exit(-1)
     
 # Execute the project
-executor = ExecuteCompiledProject(covarep,return_inputs=True, verbose=verbose)
+executor = MatlabExecutor(covarep,return_inputs=True, verbose=verbose)
 
 pass_args = vars(args2)
 matlab_format = dict()

@@ -98,7 +98,7 @@ else:
     print(f'File {args.filename} does not exist, aborting')
     sys.exit(-1)
     
-from visp_matlab_loader.execute.compiled_project_executor import ExecuteCompiledProject
+from visp_matlab_loader.execute.compiled_project_executor import MatlabExecutor
 from visp_matlab_loader.find_compiled_projects import MatlabProject, CompiledProjectFinder   
 
 # Consider to make this an argument
@@ -115,7 +115,7 @@ if va_toolbox is None:
     sys.exit(-1)
     
 # Execute the project
-executor = ExecuteCompiledProject(va_toolbox,return_inputs=True)
+executor = MatlabExecutor(va_toolbox,return_inputs=True)
 
 pass_args = vars(args)
 filename = pass_args.pop('filename')

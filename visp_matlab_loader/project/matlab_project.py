@@ -1,16 +1,16 @@
+from __future__ import annotations
 import json
 import os
 from glob import glob
 from types import NoneType
-from typing import Dict, LiteralString, OrderedDict
+from typing import Dict, OrderedDict, TYPE_CHECKING
 
 
-from visp_matlab_loader.execute.abstract_executor import AbstractExecutor
-from visp_matlab_loader.project.abstract_function import AbstractFunction
-from visp_matlab_loader.project.abstract_project import AbstractProject
+if TYPE_CHECKING:
+    from visp_matlab_loader.execute.compiled_project_executor import MatlabExecutor
+    from visp_matlab_loader.project.matlab_function import MatlabFunction
 
-
-class MatlabProject(AbstractProject):
+class MatlabProject:
     # Property for binary file for the matlab project
     @property
     def binary_file(self) -> str:
@@ -32,7 +32,7 @@ class MatlabProject(AbstractProject):
         return os.path.abspath(os.path.join(self.wrapper_file, "..", "..", ".."))
 
     @property
-    def functions(self) -> Dict[str, AbstractFunction]:
+    def functions(self) -> Dict[str, MatlabFunction]:
         if self._functions == {}:
             self._functions = self.initialize_functions()
         return self._functions
@@ -79,11 +79,11 @@ class MatlabProject(AbstractProject):
         self,
         verbose: bool = True,
         auto_convert: bool = True,
-    ) -> AbstractExecutor:
-        from ..execute.compiled_project_executor import ExecuteCompiledProject
+    ) -> MatlabExecutor:
+        from ..execute.compiled_project_executor import MatlabExecutor
 
         if self._executioner is None:
-            self._executioner = ExecuteCompiledProject(
+            self._executioner = MatlabExecutor(
                 self,
                 auto_convert=auto_convert,
                 verbose=verbose,
@@ -93,14 +93,14 @@ class MatlabProject(AbstractProject):
         return self._executioner
 
     @property
-    def executor(self) -> AbstractExecutor:
+    def executor(self) -> MatlabExecutor:
         if self._executioner is None:
             self._executioner = self.get_executioner()
         return self._executioner
 
-    def __init__(self, project_wrapper_file) -> None:
+    def __init__(self, project_wrapper_file: str) -> None:
         self.wrapper_file = os.path.abspath(project_wrapper_file)
-        self._executioner: AbstractExecutor | None = None
+        self._executioner: MatlabExecutor | None = None
         self._functions = {}
 
     def __str__(self):
