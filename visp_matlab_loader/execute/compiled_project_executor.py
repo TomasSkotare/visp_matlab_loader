@@ -57,12 +57,12 @@ class MatlabExecutor:
         function_json=None,
         return_inputs=False,
     ) -> None:
-        self.matlab_project = matlab_project
-        self.auto_convert = auto_convert
-        self.verbose = verbose
-        self.path_setter = matlab_path_setter.MatlabPathSetter()
+        self.matlab_project: MatlabProject = matlab_project
+        self.auto_convert: bool = auto_convert
+        self.verbose: bool = verbose
+        self.path_setter: matlab_path_setter.MatlabPathSetter = matlab_path_setter.MatlabPathSetter()
         self.path_setter.verify_paths()
-        self.return_inputs = return_inputs
+        self.return_inputs: bool = return_inputs
         self.function_json = function_json
 
     def vprint(self, *args):
@@ -165,7 +165,11 @@ class MatlabExecutor:
             matlab_output = matlab_output.decode("utf-8")
             if exit_code != 0:
                 self.vprint("Error: Nonzero MATLAB exit code, no results returned!")
-                return MatlabExecutionResult(exit_code, matlab_output, function_name, dict())
+                return MatlabExecutionResult(exit_code, 
+                                             matlab_output, 
+                                             function_name, 
+                                             dict(),
+                                             self.matlab_project.name)
 
             # Load results from "results.mat" and then delete the file
             res = loadmat("results.mat", squeeze_me=True, simplify_cells=True)
@@ -193,7 +197,8 @@ class MatlabExecutor:
             matlab_output,
             function_name,
             {x: y for x, y in zip(names, outputs_iter)},
-            return_inputs,
+            self.matlab_project.name,
+            return_inputs,            
         )
 
     # exit_code, matlab_output, {x: y for x, y in zip(names, outputs_iter)}

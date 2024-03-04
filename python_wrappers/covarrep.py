@@ -138,7 +138,6 @@ else:
 
 from visp_matlab_loader.execute.compiled_project_executor import MatlabExecutor
 from visp_matlab_loader.find_compiled_projects import (
-    MatlabProject,
     CompiledProjectFinder,
 )
 

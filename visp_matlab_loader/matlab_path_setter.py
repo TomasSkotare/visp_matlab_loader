@@ -4,7 +4,8 @@ import os
 
 class MatlabPathSetter:
     matlab_root: str | None = None
-    matlab_available_installs: list = []
+    _matlab_available_installs: list = []
+    _matlab_runtime_installs: list = []
     verbose: bool = False
 
     def vprint(self, string: str):
@@ -25,12 +26,24 @@ class MatlabPathSetter:
             return None
         return os.path.join(self.matlab_root, "bin", "matlab")
 
+    @property
+    def matlab_installs(self):
+        if self._matlab_runtime_installs is None:
+            self.find_latest_matlab_or_runtime()
+        return self._matlab_available_installs
+    
+    @property
+    def matlab_runtime_installs(self):
+        if self._matlab_runtime_installs is None:
+            self.find_latest_matlab_or_runtime()
+        return self._matlab_runtime_installs
+
     def __init__(self, version=None, verbose=False):
         self.matlab_root = self.find_latest_matlab_or_runtime(version)
         self.set_ld_library_path()
         self.verbose = verbose
 
-    def find_latest_matlab_or_runtime(self, version):
+    def find_latest_matlab_or_runtime(self, version: str | None = None):
         # Get a list of all MATLAB installations
         matlab_dirs = glob.glob("/usr/local/MATLAB/R20*")
         matlab_dirs.sort(reverse=True)  # Sort in reverse order to get the latest version first
@@ -39,7 +52,7 @@ class MatlabPathSetter:
             for dir in matlab_dirs:
                 print(dir)
 
-        self.matlab_available_installs = matlab_dirs
+        self._matlab_available_installs = matlab_dirs
 
         # Get a list of all MATLAB Runtime environments
         runtime_dirs = glob.glob("/usr/local/MATLAB/MATLAB_Runtime/R20*")
@@ -51,6 +64,8 @@ class MatlabPathSetter:
             else:
                 for dir in runtime_dirs:
                     print(dir)
+
+        self._matlab_runtime_installs = runtime_dirs
 
         # If a specific version was requested, try to use it
         if version is not None:

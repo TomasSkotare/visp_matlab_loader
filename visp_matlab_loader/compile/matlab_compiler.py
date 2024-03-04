@@ -111,7 +111,15 @@ class MATLABProjectCompiler:
         relative_paths = [os.path.relpath(path, current_path) for path in absolute_paths]
         return relative_paths
 
-    def compile_project(self, verbose=False):
+    def compile_project(self, verbose=False, force_output=False):
+        """Compiles the project to a standalone executable.
+        This function will create a wrapper script for the given project directory,
+        and then compile it into a standalone executable.
+
+        Args:
+            verbose: bool - Whether to print additional status messages or not
+            force_output: bool - Whether to overwrite the output file if it already exists
+        """
         # Create the target directory if it does not exist
         self.create_directory(self.output_directory)
 
@@ -159,6 +167,7 @@ class MATLABProjectCompiler:
             self.project_name,
             additional_dirs=project_dir,
             create_output_directory=True,
+            force_output=force_output,
         )
         vprint("Compiled with code:", compiler_code)
         vprint("Message:", compiler_message)
@@ -205,7 +214,7 @@ class MatlabCompiler:
             output_file = script_name
 
         if not force_output and self.__class__.file_exists(output_dir, output_file):
-            return 1, f"Output file {output_file} already exists in {output_dir}."
+            return 2, f"Output file {output_file} already exists in {output_dir}."
 
         if not os.path.isdir(output_dir):
             if create_output_directory:

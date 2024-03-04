@@ -23,13 +23,8 @@ class MatlabExecutionResult:
         __ne__(other): Checks if the MatlabExecutionResult object is not equal to another object.
         to_json(file=None): Converts the MatlabExecutionResult object to a JSON string. If a file is provided, writes the JSON string to the file.
         from_json(json_string=None, file=None): Class method that converts a JSON string to a MatlabExecutionResult object. If a file is provided, reads the JSON string from the file.
+        verify_serialization(): Verifies that the MatlabExecutionResult object can be serialized and deserialized without losing information.
     """
-
-    return_code: int
-    execution_message: str
-    function_name: str
-    outputs: dict
-    inputs: list
 
     @property
     def success(self):
@@ -41,16 +36,19 @@ class MatlabExecutionResult:
         execution_message: str,
         function_name: str,
         outputs: dict,
+        project_name: str,
         inputs=[],  # Optional!
     ):
-        self.return_code = return_code
-        self.execution_message = execution_message
-        self.function_name = function_name
-        self.outputs = outputs
-        self.inputs = inputs
+        self.return_code: int = return_code
+        self.execution_message: str = execution_message
+        self.function_name: str = function_name
+        self.outputs: dict = outputs
+        self.inputs: list = inputs
+        self.project_name: str = project_name
+        
 
     def __str__(self):
-        return f"MatlabExecutionResult(return_code={self.return_code}, error_message={self.execution_message}, function_name={self.function_name}, outputs={self.outputs})"
+        return f"MatlabExecutionResult(return_code={self.return_code}, error_message={self.execution_message}, project_name={self.project_name} function_name={self.function_name}, outputs={self.outputs})"
 
     def __eq__(self, other):
         if isinstance(other, MatlabExecutionResult):
@@ -58,6 +56,7 @@ class MatlabExecutionResult:
                 self.return_code == other.return_code
                 and self.execution_message == other.execution_message
                 and self.function_name == other.function_name
+                and self.project_name == other.project_name
                 and self.__class__.__compare_outputs(self.outputs, other.outputs)
             )
         else:
@@ -135,7 +134,7 @@ class MatlabExecutionResult:
 
     def verify_serialization(self):
         # Create a temporary file
-        with tempfile.NamedTemporaryFile(suffix=".json", delete=False) as temp:
+        with tempfile.NamedTemporaryFile(suffix=".json", delete=True) as temp:
             temp_file_name = temp.name
 
         try:
