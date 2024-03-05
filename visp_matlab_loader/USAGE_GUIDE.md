@@ -28,23 +28,13 @@ import os
 MATLAB_LIBRARY_PATH = os.path.join(os.getcwd(), 'matlab', 'libraries')
 MATLAB_COMPILED_PATH = os.path.join(os.getcwd(), 'matlab', 'compiled')
 
-# Verify path exists
-if not os.path.exists(MATLAB_LIBRARY_PATH):
-    raise Exception(f'Matlab library path does not exist: {MATLAB_LIBRARY_PATH}')
-
-if not os.path.exists(MATLAB_COMPILED_PATH):    
-    os.makedirs(MATLAB_COMPILED_PATH)
-
-for name in os.listdir(MATLAB_LIBRARY_PATH):
-    if os.path.isdir(os.path.join(MATLAB_LIBRARY_PATH, name)):
-        print(f'Compiling {name}')
-        compiler = MATLABProjectCompiler(project_path=os.path.join(MATLAB_LIBRARY_PATH, name), 
-                                         output_path=os.path.join(MATLAB_COMPILED_PATH, name)) # Here we would add a MatlabPathSetter if we want to specify which compiler to use!
-        compiler_code, compiler_message = compiler.compile_project(verbose=False)
-        if compiler_code != 0:
-            print(f'Error compiling project: {name}, compiler message was: {compiler_message}')
-        else:
-            print(f'Successfully compiled project: {name}')
+results = MATLABProjectCompiler.compile_projects(MATLAB_LIBRARY_PATH, MATLAB_COMPILED_PATH, force_output=False)
+for project_path, exit_status, message in results:
+    project_name = os.path.basename(project_path)
+    if exit_status != 0:
+        print(f'Error compiling {project_name} with message:\n\t{message}')
+    else:
+        print(f'Compiled {project_name} successfully')
 ```        
 The user will have to declare the actual path to both `MATLAB_LIBRARY_PATH` and `MATLAB_COMPILED_PATH`, which is the input and output respectively.
 

@@ -13,11 +13,15 @@
 # ---
 
 # %%
-#  Find installed MATLAB versions
 
-# from visp_matlab_loader.matlab_compiler import MatlabVersionFinder, MatlabCompiler
+import os
+import sys
+
+sys.path.append('..')
 from visp_matlab_loader.matlab_path_setter import MatlabPathSetter
+
 matlab_path = MatlabPathSetter()
+
 print(matlab_path.matlab_root)
 if not matlab_path.verify_paths():
     raise Exception('Matlab paths are not set correctly')
@@ -29,8 +33,8 @@ if not matlab_path.verify_paths():
 from visp_matlab_loader.compile.matlab_compiler import MATLABProjectCompiler
 import os
 
-MATLAB_LIBRARY_PATH = os.path.join(os.getcwd(), 'matlab', 'libraries')
-MATLAB_COMPILED_PATH = os.path.join(os.getcwd(), 'matlab', 'compiled')
+MATLAB_LIBRARY_PATH = os.path.join(os.getcwd(), '..', 'matlab', 'libraries')
+MATLAB_COMPILED_PATH = os.path.join(os.getcwd(), '..', 'matlab', 'compiled')
 
 results = MATLABProjectCompiler.compile_projects(MATLAB_LIBRARY_PATH, MATLAB_COMPILED_PATH, force_output=False)
 for project_path, exit_status, message in results:

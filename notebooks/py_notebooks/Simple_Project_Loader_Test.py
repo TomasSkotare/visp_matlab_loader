@@ -13,37 +13,11 @@
 # ---
 
 # %%
-from visp_matlab_loader.compile.matlab_compiler import MATLABProjectCompiler
-import os
-
-MATLAB_LIBRARY_PATH = os.path.join(os.getcwd(), 'matlab', 'libraries')
-MATLAB_COMPILED_PATH = os.path.join(os.getcwd(), 'matlab', 'compiled')
-
-# Verify path exists
-if not os.path.exists(MATLAB_LIBRARY_PATH):
-    raise Exception('Matlab library path does not exist: {}'.format(MATLAB_LIBRARY_PATH))
-
-if not os.path.exists(MATLAB_COMPILED_PATH):    
-    os.makedirs(MATLAB_COMPILED_PATH)
-
-for name in os.listdir(MATLAB_LIBRARY_PATH):
-    if os.path.isdir(os.path.join(MATLAB_LIBRARY_PATH, name)):
-        print('Compiling {}'.format(name))
-        compiler = MATLABProjectCompiler(project_path=os.path.join(MATLAB_LIBRARY_PATH, name), 
-                                         output_path=os.path.join(MATLAB_COMPILED_PATH, name)) # Here we would add a MatlabPathSetter if we want to specify which compiler to use!
-        compiler_code, compiler_message = compiler.compile_project(verbose=False, force_output=True)
-        if compiler_code != 0:
-            if compiler_code == 2:
-                print(f'Project: {name} was already compiled')
-            else:
-                print(f'Error compiling project: {name}, compiler message was: {compiler_message}')
-        else:
-            print(f'Successfully compiled project: {name}')
-
-# %%
+import sys
+sys.path.append('..')
 from visp_matlab_loader.find_compiled_projects import CompiledProjectFinder
 
-projects = CompiledProjectFinder('./matlab/compiled')
+projects = CompiledProjectFinder('../matlab/compiled')
 
 vat = projects.get_project('get_next_thousand')
 
@@ -67,7 +41,7 @@ result.verify_serialization()
 # %%
 from visp_matlab_loader.find_compiled_projects import CompiledProjectFinder
 import numpy as np
-projects = CompiledProjectFinder('./matlab/compiled')
+projects = CompiledProjectFinder('../matlab/compiled')
 
 vat = projects.get_project('covarep')
 
@@ -95,7 +69,7 @@ print(result)
 # %%
 from visp_matlab_loader.find_compiled_projects import CompiledProjectFinder
 import numpy as np
-projects = CompiledProjectFinder('./matlab/compiled')
+projects = CompiledProjectFinder('../matlab/compiled')
 
 vat = projects.get_project('voice_analysis_toolbox')
 
@@ -120,7 +94,7 @@ import numpy as np
 
 import matlab.wrappers.covarrep
 
-cov = matlab.wrappers.covarrep.covarep('./matlab/compiled/covarep')
+cov = matlab.wrappers.covarrep.covarep('../matlab/compiled/covarep')
 
 funcs = cov.populate_functions()
 # print(funcs['sin_analysis'])
@@ -131,43 +105,14 @@ cov.sin_analysis(requested_outputs=2,
                       fs = 44100, 
                       f0s = np.array([[0.0, 440], [0.01, 440], [0.02, 440], [0.03, 440], [0.04, 440]]))
 
-
-
-
-
-
-        
-
-
-    
-
-# %%
-from visp_matlab_loader.find_compiled_projects import CompiledProjectFinder
-
-projects = CompiledProjectFinder('./matlab/compiled')
-
-vat = projects.get_project('get_next_thousand')
-
-print(vat)
-
-f = vat.functions['getnextthousand']
-print(f)
-
-result = f.execute(float(1000))
-
-print(result)
-if result is not None:
-    print(result.outputs)
-
-result.verify_serialization()
-
+   
 
 # %%
 import numpy as np 
 
 import matlab.wrappers.get_next_thousand
 
-gnt = matlab.wrappers.get_next_thousand.get_next_thousand('./matlab/compiled/get_next_thousand')
+gnt = matlab.wrappers.get_next_thousand.get_next_thousand('../matlab/compiled/get_next_thousand')
 
 result = gnt.getnextthousand(1000)
 print(result)
