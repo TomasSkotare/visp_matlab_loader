@@ -1,10 +1,11 @@
-import numpy as np 
+import numpy as np
+
 
 def ensure_vector(array, vector_type="column"):
     """
     This function ensures that the input array is a vector of the specified type (column or row).
-    
-    If the input is a 1D array, it reshapes it into a 2D array where one dimension is 1. The reshaping is done in-place, 
+
+    If the input is a 1D array, it reshapes it into a 2D array where one dimension is 1. The reshaping is done in-place,
     meaning the original array is modified. The function also converts the array to float type.
 
     Parameters:
@@ -24,7 +25,7 @@ def ensure_vector(array, vector_type="column"):
            [3.]])
     >>> ensure_vector([1, 2, 3], 'row')
     array([[1., 2., 3.]])
-    """    
+    """
     # Convert the input to a numpy array if it's not already
     if not isinstance(array, np.ndarray):
         array = np.array(array)

@@ -1,5 +1,6 @@
 reference/*
-matlab/libraries*
+matlab/libraries/*
+!matlab/libraries/get_next_thousand/
 **/__pycache__/
 tests/output/*
 visp_matlab_loader/output/*
@@ -12,3 +13,5 @@ results.mat
 input.mat
 out.json
 output.json
+*mypy*
+notebooks/*.ipynb

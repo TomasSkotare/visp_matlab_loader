@@ -2,6 +2,7 @@ import glob
 import json
 import re
 from pathlib import Path
+from typing import List
 
 import requests
 from bs4 import BeautifulSoup
@@ -16,7 +17,7 @@ def extract_covarep_expected_functions(url: str):
     Returns:
         matlab_links: A list of tuples containing the link text (function name) and the link itself, which explains the function.
     """
-    response = requests.get(url)
+    response = requests.get(url, timeout=30)
     soup = BeautifulSoup(response.content, "html.parser")
     matlab_links = []
     for link in soup.find_all("a", href=True):
@@ -32,8 +33,8 @@ def contains_line_breaks(s):
 
 def directory_to_script(
     directory_path: str,
-    verbose=False,
-    excluded_files=["startup.m"],
+    verbose: bool=False,
+    excluded_files: List[str] | None = None,
     save_function_location=None,
 ):
     """Create a MATLAB function wrapper for a given directory.
@@ -62,6 +63,8 @@ def directory_to_script(
         tuple: A tuple with two variables, the script text itself and the list of
             functions which was found.
     """
+    if excluded_files is None:
+        excluded_files = ["startup.m"]
     vprint = lambda x: print(x) if verbose else None
 
     # Get a list of all files in the directory
@@ -182,9 +185,9 @@ def directory_to_script(
 
     # Create a dictionary of available functions
     function_dict = {}
-    for output, function_name, input in found_functions:
+    for output, function_name, function_input in found_functions:
         output_list = output.translate(str.maketrans(",[]", "   ")).split()
-        input_list = input.translate(str.maketrans(",[]", "   ")).split()
+        input_list = function_input.translate(str.maketrans(",[]", "   ")).split()
 
         function_dict[function_name] = {"output": output_list, "input": input_list}
 

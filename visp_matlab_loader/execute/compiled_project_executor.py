@@ -1,13 +1,10 @@
 from __future__ import annotations
 
-# Note that we must have input.mat in some directory.
-# This is a workaround to avoid passing values as text in the console.
-
 import numbers
 import os
 import subprocess
-from subprocess import PIPE
 import tempfile
+from subprocess import PIPE
 from typing import Iterable
 
 import numpy as np
@@ -15,10 +12,12 @@ from scipy.io import loadmat, savemat
 
 from visp_matlab_loader.project.matlab_project import MatlabProject
 
-
 from .. import matlab_path_setter
 from ..mat_to_wrapper import create_script
 from .matlab_execution_result import MatlabExecutionResult
+
+# Note that we must have input.mat in some directory.
+# This is a workaround to avoid passing values as text in the console.
 
 
 class MatlabExecutor:
@@ -43,12 +42,6 @@ class MatlabExecutor:
         ScriptExecutor: An instance of the class
     """
 
-    @property
-    def available_functions(self):
-        if not self._available_functions and self.function_json:
-            self._available_functions = create_script.json_to_dict(self.function_json)
-        return self._available_functions
-
     def __init__(
         self,
         matlab_project: MatlabProject,  # TODO Make sure this is a MATLAB project
@@ -64,6 +57,12 @@ class MatlabExecutor:
         self.path_setter.verify_paths()
         self.return_inputs: bool = return_inputs
         self.function_json = function_json
+
+    @property
+    def available_functions(self):
+        if not self._available_functions and self.function_json:
+            self._available_functions = create_script.json_to_dict(self.function_json)
+        return self._available_functions
 
     def vprint(self, *args):
         if self.verbose:
@@ -101,13 +100,13 @@ class MatlabExecutor:
             for i, arg in enumerate(args):
                 print(f"  {i}: {arg} of type {type(arg).__name__}")
 
-        if type(args) is not list:
+        if not isinstance(args, list):
             self.vprint("Converting to list for enumeration.")
             args = list(args)
 
-        input = dict()
-        input["function_name"] = function_name
-        input["output_count"] = output_count
+        script_input = {}
+        script_input["function_name"] = function_name
+        script_input["output_count"] = output_count
 
         varargin = np.empty((len(args),), dtype=object)
 
@@ -143,33 +142,46 @@ class MatlabExecutor:
 
             varargin[i] = arg
 
-        input["varargin"] = varargin
+        script_input["varargin"] = varargin
         with tempfile.NamedTemporaryFile(suffix=".mat", delete=True) as temp_file:
             input_file = temp_file.name
 
             # Save input to the file
-            savemat(input_file, input)
-            self.vprint(input)
+            savemat(input_file, script_input)
+            self.vprint(script_input)
 
             custom_environment = os.environ.copy()
 
-            stream = subprocess.Popen(
-                [self.matlab_project.binary_file, input_file],
-                env=custom_environment,
-                stdout=PIPE,
-            )
-            exit_code = stream.wait()
+            try:
+                completed_process = subprocess.run(
+                    [self.matlab_project.binary_file, input_file],
+                    env=custom_environment,
+                    stdout=subprocess.PIPE,
+                    text=True,  # Automatically decodes the output to text
+                )
+            except (
+                subprocess.TimeoutExpired,
+                subprocess.CalledProcessError,
+                FileNotFoundError,
+                PermissionError,
+                OSError,
+                ValueError,
+                subprocess.SubprocessError,
+            ) as e:
+                print(f"{type(e).__name__}: {e}")
+
+            exit_code = completed_process.returncode
             self.vprint(f"MATLAB exited with code: {exit_code}")
-            # Ensure output is string!
-            matlab_output = stream.communicate()[0]
-            matlab_output = matlab_output.decode("utf-8")
+            matlab_output = completed_process.stdout
             if exit_code != 0:
                 self.vprint("Error: Nonzero MATLAB exit code, no results returned!")
-                return MatlabExecutionResult(exit_code, 
-                                             matlab_output, 
-                                             function_name, 
-                                             dict(),
-                                             self.matlab_project.name)
+                return MatlabExecutionResult(
+                    exit_code,
+                    matlab_output,
+                    function_name,
+                    {},
+                    self.matlab_project.name,
+                )
 
             # Load results from "results.mat" and then delete the file
             res = loadmat("results.mat", squeeze_me=True, simplify_cells=True)
@@ -196,9 +208,9 @@ class MatlabExecutor:
             exit_code,
             matlab_output,
             function_name,
-            {x: y for x, y in zip(names, outputs_iter)},
+            dict(zip(names, outputs_iter)),
             self.matlab_project.name,
-            return_inputs,            
+            return_inputs,
         )
 
     # exit_code, matlab_output, {x: y for x, y in zip(names, outputs_iter)}
@@ -216,4 +228,3 @@ class MatlabExecutor:
 
 if __name__ == "__main__":
     print("This is a library, not a standalone script.")
-    pass

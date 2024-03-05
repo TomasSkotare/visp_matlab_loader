@@ -101,6 +101,38 @@ The `MatlabExecutionResult` object has the following properties:
 
 The execution message is the output from running the funcwtion in matlab, and can often be very verbose and must be manually parsed if it contains information.
 
+# Creating a new wrapper
+
+A new wrapper for a new MATLAB project can be created using the MatlabProjectWrapper abstract base class (ABC). 
+
+To create this, a class must extend this class, and be the exact same name as the compiled MATLAB library.
+
+Each defined method must then use the `@matlab_function` decorator. This way, the input can be handled and type checked
+in python.
+
+As a simple example, look at the definition for the `get_next_thousand` library (and function):
+
+```
+class get_next_thousand(MatlabProjectWrapper):
+
+    def __init__(self, directory):
+        super().__init__(self.__class__.__name__.lower(), directory)
+
+    @matlab_function
+    def getnextthousand(
+        self, inputNumber: int, requested_outputs=1
+    ) -> MatlabExecutionResult:
+        return default_args(locals())  # type: ignore
+``` 
+
+This creates the wrapper (used above) for the `get_next_thousand` library and defines the input and default types for one of the available functions.
+
+Note that the inputs can be modified as well, before being returned, if the types must be validated somehow (for example,
+if MATLAB expects a list to be a column or row vector, it can be modified).
+
+
+
+
 
 
 # References:

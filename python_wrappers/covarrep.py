@@ -1,12 +1,13 @@
 #!/usr/bin/env python3
 
 import argparse
-from fileinput import filename
-import numpy as np
+import ast
+import importlib.util
 import os
 import sys
-import importlib.util
-import ast
+from fileinput import filename
+
+import numpy as np
 
 
 def ensure_column_vector(array):
@@ -137,9 +138,7 @@ else:
     print("Package not found")
 
 from visp_matlab_loader.execute.compiled_project_executor import MatlabExecutor
-from visp_matlab_loader.find_compiled_projects import (
-    CompiledProjectFinder,
-)
+from visp_matlab_loader.find_compiled_projects import CompiledProjectFinder
 
 # Consider to make this an argument
 compiled_projects = CompiledProjectFinder(find_matlab_compiled(directory="."))

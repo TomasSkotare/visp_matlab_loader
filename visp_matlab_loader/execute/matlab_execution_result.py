@@ -17,13 +17,19 @@ class MatlabExecutionResult:
 
     Methods:
         success: Property that checks if the MATLAB execution was successful.
-        __init__(return_code, execution_message, function_name, outputs): Initializes the MatlabExecutionResult object.
+        __init__(return_code, execution_message, function_name, outputs): Initializes the
+            MatlabExecutionResult object.
         __str__(): Returns a string representation of the MatlabExecutionResult object.
         __eq__(other): Checks if the MatlabExecutionResult object is equal to another object.
-        __ne__(other): Checks if the MatlabExecutionResult object is not equal to another object.
-        to_json(file=None): Converts the MatlabExecutionResult object to a JSON string. If a file is provided, writes the JSON string to the file.
-        from_json(json_string=None, file=None): Class method that converts a JSON string to a MatlabExecutionResult object. If a file is provided, reads the JSON string from the file.
-        verify_serialization(): Verifies that the MatlabExecutionResult object can be serialized and deserialized without losing information.
+        __ne__(other): Checks if the MatlabExecutionResult object is not equal to another
+            object.
+        to_json(file=None): Converts the MatlabExecutionResult object to a JSON string. If a
+            file is provided, writes the JSON string to the file.
+        from_json(json_string=None, file=None): Class method that converts a JSON string to a
+            MatlabExecutionResult object. If a file is provided, reads the JSON string from
+            the file.
+        verify_serialization(): Verifies that the MatlabExecutionResult object can be
+            serialized and deserialized without losing information.
     """
 
     @property
@@ -45,7 +51,6 @@ class MatlabExecutionResult:
         self.outputs: dict = outputs
         self.inputs: list = inputs
         self.project_name: str = project_name
-        
 
     def __str__(self):
         return f"MatlabExecutionResult(return_code={self.return_code}, error_message={self.execution_message}, project_name={self.project_name} function_name={self.function_name}, outputs={self.outputs})"
@@ -57,10 +62,14 @@ class MatlabExecutionResult:
                 and self.execution_message == other.execution_message
                 and self.function_name == other.function_name
                 and self.project_name == other.project_name
-                and self.__class__.__compare_outputs(self.outputs, other.outputs)
+                and MatlabExecutionResult.__compare_outputs(self.outputs, other.outputs)
             )
-        else:
-            return False
+        return False
+    
+    def compare_results(self, other: "MatlabExecutionResult", verbose: bool = False):
+        if isinstance(other, MatlabExecutionResult):
+            return MatlabExecutionResult.__compare_outputs(self.outputs, other.outputs, verbose=verbose)
+        raise ValueError("The other object is not a MatlabExecutionResult")
 
     @staticmethod
     def __compare_outputs(outputs1, outputs2, verbose=False):
@@ -72,20 +81,20 @@ class MatlabExecutionResult:
         if isinstance(outputs1, dict):
             if set(outputs1.keys()) != set(outputs2.keys()):
                 if verbose:
-                    print(f"Different keys in dictionaries")
+                    print("Different keys in dictionaries")
                 return False
             for key in outputs1:
-                if not __class__.__compare_outputs(outputs1[key], outputs2.get(key, None), verbose):
+                if not MatlabExecutionResult.__compare_outputs(outputs1[key], outputs2.get(key, None), verbose):
                     if verbose:
                         print(f"Different values for key {key}: {outputs1[key]} and {outputs2.get(key, None)}")
                     return False
         elif isinstance(outputs1, list):
             if len(outputs1) != len(outputs2):
                 if verbose:
-                    print(f"Different list lengths")
+                    print("Different list lengths")
                 return False
             for item1, item2 in zip(outputs1, outputs2):
-                if not __class__.__compare_outputs(item1, item2, verbose):
+                if not MatlabExecutionResult.__compare_outputs(item1, item2, verbose):
                     if verbose:
                         print(f"Different list items: {item1} and {item2}")
                     return False
@@ -93,10 +102,10 @@ class MatlabExecutionResult:
             if outputs1.dtype == object and outputs2.dtype == object:
                 if outputs1.shape != outputs2.shape:
                     if verbose:
-                        print(f"Different numpy array shapes")
+                        print("Different numpy array shapes")
                     return False
                 for item1, item2 in zip(outputs1.flat, outputs2.flat):
-                    if not __class__.__compare_outputs(item1, item2, verbose):
+                    if not MatlabExecutionResult.__compare_outputs(item1, item2, verbose):
                         if verbose:
                             print(f"Different numpy array items: {item1} and {item2}")
                         return False

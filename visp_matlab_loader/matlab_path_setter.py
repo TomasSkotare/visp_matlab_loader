@@ -31,7 +31,7 @@ class MatlabPathSetter:
         if self._matlab_runtime_installs is None:
             self.find_latest_matlab_or_runtime()
         return self._matlab_available_installs
-    
+
     @property
     def matlab_runtime_installs(self):
         if self._matlab_runtime_installs is None:
