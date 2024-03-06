@@ -8,6 +8,7 @@ from typing import Callable, Dict, List, Tuple, Type
 
 from visp_matlab_loader.execute.matlab_execution_result import MatlabExecutionResult
 from visp_matlab_loader.find_compiled_projects import CompiledProjectFinder
+from visp_matlab_loader.project.matlab_project import MatlabProject
 
 
 def default_args(local_vars, exclude=None):
@@ -27,24 +28,31 @@ def default_args(local_vars, exclude=None):
     return (), kwargs
 
 
+
+
 class MatlabProjectWrapper(ABC):
     def __init__(self, name: str, compiled_directory: str):
         self._name = name
-        self._compiled_directory = compiled_directory
+        # set compiled directory to abs path
+        self._compiled_directory = os.path.abspath(compiled_directory)
 
         found_projects = CompiledProjectFinder(self._compiled_directory)
         if not found_projects.has_project(self._name):
             raise ValueError(f"Could not find project with name '{self._name}'")
-        self.matlab_project = found_projects.get_project(self._name)
+        self._matlab_project = found_projects.get_project(self._name)
         self._matlab_functions = None
 
     @property
-    def name(self):
+    def name(self) -> str:
         return self._name
 
     @property
-    def compiled_directory(self):
+    def compiled_directory(self) -> str:
         return self._compiled_directory
+    
+    @property 
+    def matlab_project(self) -> MatlabProject:
+        return self._matlab_project
 
     # @property
     # def functions(self) -> Dict[str, Callable]:

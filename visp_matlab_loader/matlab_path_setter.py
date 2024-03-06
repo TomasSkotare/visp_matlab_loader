@@ -11,6 +11,12 @@ class MatlabPathSetter:
     def vprint(self, string: str):
         if self.verbose:
             print(string)
+            
+        
+    def __init__(self, version=None, verbose=False):
+        self.matlab_root = self.find_latest_matlab_or_runtime(version)
+        self.set_ld_library_path()
+        self.verbose = verbose            
 
     # Property to get the MATLAB mcc binary
     @property
@@ -27,21 +33,30 @@ class MatlabPathSetter:
         return os.path.join(self.matlab_root, "bin", "matlab")
 
     @property
-    def matlab_installs(self):
+    def matlab_installs(self) -> list[str]:
         if self._matlab_runtime_installs is None:
             self.find_latest_matlab_or_runtime()
         return self._matlab_available_installs
 
     @property
-    def matlab_runtime_installs(self):
+    def matlab_runtime_installs(self) -> list[str]:
         if self._matlab_runtime_installs is None:
             self.find_latest_matlab_or_runtime()
         return self._matlab_runtime_installs
+    
+    def can_support_version(self, version: str) -> bool:
+        # Ensure version starts with 'R'
+        if not version.startswith('R'):
+            version = 'R' + version
 
-    def __init__(self, version=None, verbose=False):
-        self.matlab_root = self.find_latest_matlab_or_runtime(version)
-        self.set_ld_library_path()
-        self.verbose = verbose
+        current_versions = [os.path.basename(x) for x in self.matlab_installs]
+        current_versions += [os.path.basename(x) for x in self.matlab_runtime_installs]
+
+        # Ensure all versions in current_versions start with 'R'
+        current_versions = ['R' + v if not v.startswith('R') else v for v in current_versions]
+
+        return version in current_versions
+
 
     def find_latest_matlab_or_runtime(self, version: str | None = None):
         # Get a list of all MATLAB installations

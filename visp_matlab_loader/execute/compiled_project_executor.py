@@ -63,6 +63,9 @@ class MatlabExecutor:
         if not self._available_functions and self.function_json:
             self._available_functions = create_script.json_to_dict(self.function_json)
         return self._available_functions
+    
+    def supports_matlab_version(self, version: str) -> bool:
+        return self.path_setter.can_support_version(version)
 
     def vprint(self, *args):
         if self.verbose:
@@ -143,6 +146,11 @@ class MatlabExecutor:
             varargin[i] = arg
 
         script_input["varargin"] = varargin
+        
+        # Verify that results.mat does not exist before running the script, as it will be overwritten:
+        if os.path.exists("results.mat"):
+            raise FileExistsError("results.mat already exists, please remove before running!")
+        
         with tempfile.NamedTemporaryFile(suffix=".mat", delete=True) as temp_file:
             input_file = temp_file.name
 

@@ -51,7 +51,7 @@ except ModuleNotFoundError:
 
 from visp_matlab_loader.execute.matlab_execution_result import \
     MatlabExecutionResult
-from visp_matlab_loader.wrappers.matlab_wrapper import MatlabProjectWrapper, matlab_function
+from visp_matlab_loader.wrappers.matlab_wrapper import MatlabProjectWrapper, matlab_function, default_args
 
 
 class covarep(MatlabProjectWrapper):

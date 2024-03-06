@@ -51,6 +51,11 @@ result = gnt.getnextthousand(requested_outputs=1, starting_number=1000)
 print(result)
 ```
 
+### WARNING: Deletion of output.mat
+In the current version, outputs are always saved in the current directory as output.mat.
+This file is then automatically deleted after having been read. If you already have a file named this,
+it will either be deleted or cause an error.
+
 ## In the case where no wrapper has been defined, the user must instead call the function knowing the input themselves:
 ```
 from visp_matlab_loader.find_compiled_projects import CompiledProjectFinder
@@ -68,6 +73,7 @@ result = f.execute(float(1000))
 
 print(result)
 ```
+The advantage of the first approach is that the input can be defined only once.
 
 
 The library should find the currently installed MATLAB Runtime Environment automatically, however the version be manually matched.
@@ -120,6 +126,31 @@ This creates the wrapper (used above) for the `get_next_thousand` library and de
 Note that the inputs can be modified as well, before being returned, if the types must be validated somehow (for example,
 if MATLAB expects a list to be a column or row vector, it can be modified).
 
+A more complex example is the following, where the input signature of the MATLAB file does not match the Python input:
+```
+@matlab_function
+def voice_analysis_modified(
+    self, filename: str, f0_alg="SWIPE", start_time=0, end_time=np.inf, Tmax=1000, d=4, tau=50,
+    eta=0.2, dfa_scaling=np.arange(50, 201, 20), f0min=50, f0max=500, flag=1, requested_outputs=3
+) -> MatlabExecutionResult:
+    
+    if not filename: 
+        raise ValueError("Filename must be provided")
+    
+    dfa_scaling = ensure_vector(dfa_scaling, "column")
+    start_time, end_time = float(start_time), float(end_time)
+    
+    params = {
+        k: v for k, v in locals().items() 
+        if k not in ["self", "filename", "requested_outputs"]
+    }
+    
+    return (filename,), {"requested_outputs": requested_outputs, "params": params}  # type: ignore
+```
+Here we verify the input, and ensure tha tone variable is in a column vector format using the `ensure_vector` 
+helper functionfrom `visp_matlab_loader.wrappers.matlab_wrapper_helper`. The options are then put into a dictionary,
+as the Matlab function expects a struct with these variables.  We then create the args and kwargs separately and 
+return them instead of using the default with locals.
 
 
 
