@@ -84,9 +84,14 @@ class MatlabPathSetter:
 
         # If a specific version was requested, try to use it
         if version is not None:
-            version_dir = "/usr/local/MATLAB/" + version
-            if version_dir in matlab_dirs or version_dir in runtime_dirs:
-                return version_dir
+            if not version.startswith('R'):
+                version = 'R' + version
+            version_dir_matlab = "/usr/local/MATLAB/" + version
+            version_dir_runtime = "/usr/local/MATLAB/MATLAB_Runtime/" + version
+            if version_dir_matlab in matlab_dirs:
+                return version_dir_matlab
+            elif version_dir_runtime in runtime_dirs:
+                return version_dir_runtime
             else:
                 self.vprint(f"Error: Requested version {version} not found.")
                 return None

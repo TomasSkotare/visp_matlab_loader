@@ -63,7 +63,7 @@ class MATLABProjectCompiler:
     def project_name(self):
         return os.path.basename(self.project_path)
 
-    def __init__(self, project_path, output_path, path_setter=None) -> None:
+    def __init__(self, project_path: str, output_path: str, path_setter: MatlabPathSetter | None = None) -> None:
         project_path = os.path.abspath(project_path)
         output_path = os.path.abspath(output_path)
 
