@@ -131,7 +131,6 @@ class MatlabProject:
             self._executioner = MatlabExecutor(
                 self,
                 auto_convert=auto_convert,
-                verbose=verbose,
                 function_json=self.function_json,
                 return_inputs=True,
             )
