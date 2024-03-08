@@ -73,12 +73,26 @@ class MatlabExecutionResult:
 
     @staticmethod
     def __compare_outputs(outputs1, outputs2, verbose=False):
+
+
+        # Check if one output is a numpy scalar and the other is a native Python type
+        # Added this check in case a numpy scalar is saved as a native python type during serializastion
+        if (np.isscalar(outputs1) and isinstance(outputs1, np.generic) and np.isscalar(outputs2)) or \
+            (np.isscalar(outputs2) and isinstance(outputs2, np.generic) and np.isscalar(outputs1)):
+            # Convert numpy type to native Python type for comparison
+            val1 = outputs1.item() if isinstance(outputs1, np.generic) else outputs1
+            val2 = outputs2.item() if isinstance(outputs2, np.generic) else outputs2
+            if val1 != val2:
+                if verbose:
+                    print(f"Different values: {val1} and {val2}")
+                return False
+            return True
         if type(outputs1) != type(outputs2):
             if verbose:
                 print(f"Different types: {type(outputs1)} and {type(outputs2)}")
             return False
 
-        if isinstance(outputs1, dict):
+        if isinstance(outputs1, dict) and isinstance(outputs2, dict):
             if set(outputs1.keys()) != set(outputs2.keys()):
                 if verbose:
                     print("Different keys in dictionaries")
@@ -88,7 +102,7 @@ class MatlabExecutionResult:
                     if verbose:
                         print(f"Different values for key {key}: {outputs1[key]} and {outputs2.get(key, None)}")
                     return False
-        elif isinstance(outputs1, list):
+        elif isinstance(outputs1, list) and isinstance(outputs2, list):
             if len(outputs1) != len(outputs2):
                 if verbose:
                     print("Different list lengths")
@@ -98,7 +112,11 @@ class MatlabExecutionResult:
                     if verbose:
                         print(f"Different list items: {item1} and {item2}")
                     return False
-        elif isinstance(outputs1, np.ndarray):
+        elif isinstance(outputs1, np.ndarray) and isinstance(outputs2, np.ndarray):            
+            if not outputs1.dtype == outputs2.dtype:
+                if verbose:
+                    print(f"Different numpy array types: {outputs1.dtype} and {outputs2.dtype}")
+                return False            
             if outputs1.dtype == object and outputs2.dtype == object:
                 if outputs1.shape != outputs2.shape:
                     if verbose:

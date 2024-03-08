@@ -75,10 +75,10 @@ class MatlabExecutor:
         If obj is a single numpy array or a non-iterable object, return it as is.
         """
         if isinstance(obj, np.ndarray):
-            if obj.dtype == np.object_:
-                if expected_outputs is not None and len(obj) != expected_outputs:
-                    logger.debug('Assuming numpy array is a single output, as size did not match expected outputs.')
-                    yield obj
+        
+            if expected_outputs is not None and len(obj) != expected_outputs:
+                logger.debug('Assuming numpy array is a single output, as size did not match expected outputs.')
+                yield obj
             logger.debug('Numpy list is type object and length matches. Assuming value is a list of return values.')
 
         elif obj is not isinstance(obj, Iterable):
@@ -216,9 +216,13 @@ class MatlabExecutor:
         
         logger.info('Output names are:')
         logger.info(output_names)
-        if len(output_names) != len(outputs):
-            logger.warning(f"Output names and outputs do not match in length!\n(Outputs: {len(outputs)}, Names: {len(output_names)})")        
-        
+        if isinstance(outputs, Iterable):
+            if len(output_names) != 1 and len(output_names) != len(outputs):
+                logger.warning(f"Output names and outputs do not match in length!\n(Outputs: {len(outputs)}, Names: {len(output_names)})")        
+        else:
+            if len(output_names) != 1:
+                logger.warning(f'Output is not iterable, but there are {len(output_names)} output names Assuming only first is requested.')
+                output_names = [output_names[0]]
         if self.return_inputs:
             return_inputs = list(varargin)
         else:

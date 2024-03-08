@@ -103,3 +103,15 @@ class get_next_thousand(MatlabProjectWrapper):
             MatlabExecutionResult: The result of the MATLAB function execution.
         """
         return default_args(locals())  # type: ignore
+    
+    @matlab_function
+    def getnextone(
+        self, inputNumber: int, requested_outputs=1
+    ) -> MatlabExecutionResult:
+        return default_args(locals())  # type: ignore    
+    
+    @matlab_function
+    def getnextthree(
+        self, inputNumber: int, requested_outputs=3
+    ) -> MatlabExecutionResult:
+        return default_args(locals())  # type: ignore

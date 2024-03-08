@@ -36,7 +36,7 @@ import os
 MATLAB_LIBRARY_PATH = os.path.join(os.getcwd(), '..', 'matlab', 'libraries')
 MATLAB_COMPILED_PATH = os.path.join(os.getcwd(), '..', 'matlab', 'compiled')
 
-results = MATLABProjectCompiler.compile_projects(MATLAB_LIBRARY_PATH, MATLAB_COMPILED_PATH, force_output=False)
+results = MATLABProjectCompiler.compile_projects(MATLAB_LIBRARY_PATH, MATLAB_COMPILED_PATH, force_output=True)
 for project_path, exit_status, message in results:
     project_name = os.path.basename(project_path)
     if exit_status != 0:
