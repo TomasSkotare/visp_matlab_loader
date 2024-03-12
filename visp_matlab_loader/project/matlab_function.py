@@ -111,8 +111,10 @@ class MatlabFunction:
                 # print("Skipping check", name, expected_type)
                 continue
             if not isinstance(used_inputs[name], expected_type):
-                print(f"Warning: Input {name} should be of type {expected_type.__name__}, but got ",
-                      f"{type(kwargs[name]).__name__}")
+                print(
+                    f"Warning: Input {name} should be of type {expected_type.__name__}, but got ",
+                    f"{type(kwargs[name]).__name__}",
+                )
 
         if self._override_output_count >= 0:
             requested_output_count = self._override_output_count

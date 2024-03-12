@@ -51,10 +51,11 @@ except ModuleNotFoundError:
             "Could not import visp_matlab_loader from the local directory"
         )
 
-from visp_matlab_loader.execute.matlab_execution_result import \
-    MatlabExecutionResult
-from visp_matlab_loader.wrappers.matlab_wrapper import (MatlabProjectWrapper,
-                                                        matlab_function)
+from visp_matlab_loader.execute.matlab_execution_result import MatlabExecutionResult
+from visp_matlab_loader.wrappers.matlab_wrapper import (
+    MatlabProjectWrapper,
+    matlab_function,
+)
 from visp_matlab_loader.wrappers.matlab_wrapper_helper import ensure_vector
 
 

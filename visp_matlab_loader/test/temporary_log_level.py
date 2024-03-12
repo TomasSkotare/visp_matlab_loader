@@ -1,14 +1,16 @@
 import logging
 
+
 class TempLogLevel:
     """Temporary changes the log level of a logger.
-    
+
     Can be used using the WITH statement, similar to this:
-    
+
     with TempLogLevel('visp_matlab_loader.execute.compiled_project_executor', logging.INFO):
         # Do something
-    
+
     """
+
     def __init__(self, logger=None, level=logging.DEBUG):
         """
         Initialize the context manager.

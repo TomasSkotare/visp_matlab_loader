@@ -1,5 +1,3 @@
-
-
 import importlib
 import os
 import sys
@@ -47,11 +45,12 @@ except ModuleNotFoundError:
             "Could not import visp_matlab_loader from the local directory"
         )
 
-from visp_matlab_loader.execute.matlab_execution_result import \
-    MatlabExecutionResult
-from visp_matlab_loader.wrappers.matlab_wrapper import (MatlabProjectWrapper,
-                                                        default_args,
-                                                        matlab_function)
+from visp_matlab_loader.execute.matlab_execution_result import MatlabExecutionResult
+from visp_matlab_loader.wrappers.matlab_wrapper import (
+    MatlabProjectWrapper,
+    default_args,
+    matlab_function,
+)
 
 
 class get_next_thousand(MatlabProjectWrapper):
@@ -103,13 +102,13 @@ class get_next_thousand(MatlabProjectWrapper):
             MatlabExecutionResult: The result of the MATLAB function execution.
         """
         return default_args(locals())  # type: ignore
-    
+
     @matlab_function
     def getnextone(
         self, inputNumber: int, requested_outputs=1
     ) -> MatlabExecutionResult:
-        return default_args(locals())  # type: ignore    
-    
+        return default_args(locals())  # type: ignore
+
     @matlab_function
     def getnextthree(
         self, inputNumber: int, requested_outputs=3

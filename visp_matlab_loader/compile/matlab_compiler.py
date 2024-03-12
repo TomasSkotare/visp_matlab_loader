@@ -6,6 +6,7 @@ import json
 import os
 import shlex
 import shutil
+
 # import numpy as np
 import subprocess
 import sys
@@ -36,9 +37,9 @@ class MATLABProjectCompiler:
 
     def ensure_directories_exist(self, directories):
         """
-        Creates the given directories if they do not exist. 
+        Creates the given directories if they do not exist.
 
-        Raises a FileNotFoundError if the parent directory does not exist. Raises an OSError if the 
+        Raises a FileNotFoundError if the parent directory does not exist. Raises an OSError if the
         directory cannot be created.
 
         Args:
@@ -63,7 +64,12 @@ class MATLABProjectCompiler:
     def project_name(self):
         return os.path.basename(self.project_path)
 
-    def __init__(self, project_path: str, output_path: str, path_setter: MatlabPathSetter | None = None) -> None:
+    def __init__(
+        self,
+        project_path: str,
+        output_path: str,
+        path_setter: MatlabPathSetter | None = None,
+    ) -> None:
         project_path = os.path.abspath(project_path)
         output_path = os.path.abspath(output_path)
 
@@ -193,16 +199,17 @@ class MATLABProjectCompiler:
         vprint("Compiled with code:", compiler_code)
         vprint("Message:", compiler_message)
         return compiler_code, compiler_message
-    
-    
+
     @staticmethod
-    def compile_projects(source_path: str, 
-                         output_path: str, 
-                         force_output: bool = False,
-                         path_setter: MatlabPathSetter| None = None) -> list[tuple[str, int, str]]:
+    def compile_projects(
+        source_path: str,
+        output_path: str,
+        force_output: bool = False,
+        path_setter: MatlabPathSetter | None = None,
+    ) -> list[tuple[str, int, str]]:
         """Compile all projects in the source directory.
-        
-        Each project will be compiled into a separate directory in the output directory, with the same 
+
+        Each project will be compiled into a separate directory in the output directory, with the same
         name as the project.
 
         Args:
@@ -212,14 +219,14 @@ class MATLABProjectCompiler:
                 MATLAB version is required.
 
         Returns:
-            list[tuple[str, int, str]]: A tuple containing the project name, 
+            list[tuple[str, int, str]]: A tuple containing the project name,
             the return code, and the compilation result.
         """
-        print('Compiling project with source path:', source_path)
-        print('Output path:', output_path)
-        print('Force output:', force_output)
-        print('Path setter:', path_setter)
-        
+        print("Compiling project with source path:", source_path)
+        print("Output path:", output_path)
+        print("Force output:", force_output)
+        print("Path setter:", path_setter)
+
         # Create a list to store the results
         results = []
 
@@ -229,25 +236,24 @@ class MATLABProjectCompiler:
             for x in os.listdir(source_path)
             if os.path.isdir(os.path.join(source_path, x))
         ]
-        
+
         # Loop through the directories and compile the projects
         for project_path in project_dirs:
             project_name = os.path.basename(project_path)
-            print('Project is:', project_name)
+            print("Project is:", project_name)
             current_project_output = os.path.join(output_path, project_name)
-            print('Creating output path: ', current_project_output)
+            print("Creating output path: ", current_project_output)
             os.makedirs(current_project_output, exist_ok=True)
-            
+
             compiler = MATLABProjectCompiler(
-                project_path=os.path.join(source_path, project_name), 
+                project_path=os.path.join(source_path, project_name),
                 output_path=current_project_output,
-                path_setter=path_setter
+                path_setter=path_setter,
             )
             compiler_code, compiler_message = compiler.compile_project(force_output=force_output)
             results.append((project_name, compiler_code, compiler_message))
 
         return results
-
 
 
 class MatlabCompiler:

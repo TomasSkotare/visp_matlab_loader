@@ -5,8 +5,6 @@ from typing import List
 from visp_matlab_loader.project.matlab_project import MatlabProject
 
 
-
-
 def find_files(directory, pattern):
     for root, _, files in os.walk(directory):
         for basename in files:

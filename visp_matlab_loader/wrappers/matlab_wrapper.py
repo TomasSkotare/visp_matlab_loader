@@ -28,8 +28,6 @@ def default_args(local_vars, exclude=None):
     return (), kwargs
 
 
-
-
 class MatlabProjectWrapper(ABC):
     def __init__(self, name: str, compiled_directory: str):
         self._name = name
@@ -49,8 +47,8 @@ class MatlabProjectWrapper(ABC):
     @property
     def compiled_directory(self) -> str:
         return self._compiled_directory
-    
-    @property 
+
+    @property
     def matlab_project(self) -> MatlabProject:
         return self._matlab_project
 
@@ -173,7 +171,7 @@ def matlab_function(func):
 
         # Execute the function with the remaining arguments
         result = matlab_func.execute(*modified_args, **kwargs_without_self_and_requested_outputs)
-        
+
         if modify_return_values_fun is not None:
             result = modify_return_values_fun(result)
 

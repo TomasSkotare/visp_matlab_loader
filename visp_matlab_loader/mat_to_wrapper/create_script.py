@@ -33,7 +33,7 @@ def contains_line_breaks(s):
 
 def directory_to_script(
     directory_path: str,
-    verbose: bool=False,
+    verbose: bool = False,
     excluded_files: List[str] | None = None,
     save_function_location=None,
 ):

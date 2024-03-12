@@ -21,6 +21,7 @@ from .matlab_execution_result import MatlabExecutionResult
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.WARNING)
 
+
 # Note that we must have input.mat in some directory.
 # This is a workaround to avoid passing values as text in the console.
 class MatlabExecutor:
@@ -44,6 +45,7 @@ class MatlabExecutor:
     Returns:
         ScriptExecutor: An instance of the class
     """
+
     def __init__(
         self,
         matlab_project: MatlabProject,
@@ -63,10 +65,9 @@ class MatlabExecutor:
         if not self._available_functions and self.function_json:
             self._available_functions = create_script.json_to_dict(self.function_json)
         return self._available_functions
-    
+
     def supports_matlab_version(self, version: str) -> bool:
         return self.path_setter.can_support_version(version)
-
 
     @staticmethod
     def iterate_or_return_single(obj, expected_outputs: int | None = None):
@@ -75,16 +76,15 @@ class MatlabExecutor:
         If obj is a single numpy array or a non-iterable object, return it as is.
         """
         if isinstance(obj, np.ndarray):
-        
             if expected_outputs is not None and len(obj) != expected_outputs:
-                logger.debug('Assuming numpy array is a single output, as size did not match expected outputs.')
+                logger.debug("Assuming numpy array is a single output, as size did not match expected outputs.")
                 yield obj
-            logger.debug('Numpy list is type object and length matches. Assuming value is a list of return values.')
+            logger.debug("Numpy list is type object and length matches. Assuming value is a list of return values.")
 
         elif obj is not isinstance(obj, Iterable):
-            logger.debug('Assuming single output, as object is not iterable.')
-            yield obj    
-        logger.debug('Iterating over outputs.')
+            logger.debug("Assuming single output, as object is not iterable.")
+            yield obj
+        logger.debug("Iterating over outputs.")
         for item in obj:
             yield item
 
@@ -146,17 +146,17 @@ class MatlabExecutor:
             varargin[i] = arg
 
         script_input["varargin"] = varargin
-        
+
         # Verify that results.mat does not exist before running the script, as it will be overwritten:
         if os.path.exists("results.mat"):
             raise FileExistsError("results.mat already exists, please remove before running!")
-        
+
         with tempfile.NamedTemporaryFile(suffix=".mat", delete=True) as temp_file:
             input_file = temp_file.name
 
             # Save input to the file
             savemat(input_file, script_input)
-            logger.debug('Sending the following to the script:', script_input)
+            logger.debug("Sending the following to the script:", script_input)
 
             custom_environment = os.environ.copy()
 
@@ -206,34 +206,37 @@ class MatlabExecutor:
         if isinstance(outputs, list):
             logger.info("Length: %d", len(outputs))
         # logger.info("Complete value: %s", outputs)
-        
-        
+
         # if outputs.dtype == np.object_ and len(outputs) == len(names):
         #     outputs = [outputs[x] for x in range(len(outputs))]
-        outputs_iter = MatlabExecutor.iterate_or_return_single(outputs,expected_outputs = output_count)
+        outputs_iter = MatlabExecutor.iterate_or_return_single(outputs, expected_outputs=output_count)
 
         output_names = output_names.replace(",", " ").split()
-        
-        logger.info('Output names are:')
+
+        logger.info("Output names are:")
         logger.info(output_names)
         if isinstance(outputs, Iterable):
             if len(output_names) != 1 and len(output_names) != len(outputs):
-                logger.warning(f"Output names and outputs do not match in length!\n(Outputs: {len(outputs)}, Names: {len(output_names)})")        
+                logger.warning(
+                    f"Output names and outputs do not match in length!\n(Outputs: {len(outputs)}, Names: {len(output_names)})"
+                )
         else:
             if len(output_names) != 1:
-                logger.warning(f'Output is not iterable, but there are {len(output_names)} output names Assuming only first is requested.')
+                logger.warning(
+                    f"Output is not iterable, but there are {len(output_names)} output names Assuming only first is requested."
+                )
                 output_names = [output_names[0]]
         if self.return_inputs:
             return_inputs = list(varargin)
         else:
             return_inputs = []
-        
+
         outputs_dict = dict(zip(output_names, outputs_iter))
-        
-        debug_output_lines = [f'{key}: {str(value)[:100]}' for key, value in outputs_dict.items()]
-        debug_output_str = '\n\t'.join(debug_output_lines)
-        logger.debug('Outputs: %s', debug_output_str)
-        
+
+        debug_output_lines = [f"{key}: {str(value)[:100]}" for key, value in outputs_dict.items()]
+        debug_output_str = "\n\t".join(debug_output_lines)
+        logger.debug("Outputs: %s", debug_output_str)
+
         return MatlabExecutionResult(
             exit_code,
             matlab_output,

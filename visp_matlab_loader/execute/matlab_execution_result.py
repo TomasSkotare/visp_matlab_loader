@@ -65,7 +65,7 @@ class MatlabExecutionResult:
                 and MatlabExecutionResult.__compare_outputs(self.outputs, other.outputs)
             )
         return False
-    
+
     def compare_results(self, other: "MatlabExecutionResult", verbose: bool = False):
         if isinstance(other, MatlabExecutionResult):
             return MatlabExecutionResult.__compare_outputs(self.outputs, other.outputs, verbose=verbose)
@@ -73,12 +73,12 @@ class MatlabExecutionResult:
 
     @staticmethod
     def __compare_outputs(outputs1, outputs2, verbose=False):
-
-
         # Check if one output is a numpy scalar and the other is a native Python type
-        # Added this check in case a numpy scalar is saved as a native python type during serializastion
-        if (np.isscalar(outputs1) and isinstance(outputs1, np.generic) and np.isscalar(outputs2)) or \
-            (np.isscalar(outputs2) and isinstance(outputs2, np.generic) and np.isscalar(outputs1)):
+        # Added this check in case a numpy scalar is saved as a native python type during serialization
+        # This is a known issue with json_tricks.
+        if (np.isscalar(outputs1) and isinstance(outputs1, np.generic) and np.isscalar(outputs2)) or (
+            np.isscalar(outputs2) and isinstance(outputs2, np.generic) and np.isscalar(outputs1)
+        ):
             # Convert numpy type to native Python type for comparison
             val1 = outputs1.item() if isinstance(outputs1, np.generic) else outputs1
             val2 = outputs2.item() if isinstance(outputs2, np.generic) else outputs2
@@ -112,11 +112,11 @@ class MatlabExecutionResult:
                     if verbose:
                         print(f"Different list items: {item1} and {item2}")
                     return False
-        elif isinstance(outputs1, np.ndarray) and isinstance(outputs2, np.ndarray):            
+        elif isinstance(outputs1, np.ndarray) and isinstance(outputs2, np.ndarray):
             if not outputs1.dtype == outputs2.dtype:
                 if verbose:
                     print(f"Different numpy array types: {outputs1.dtype} and {outputs2.dtype}")
-                return False            
+                return False
             if outputs1.dtype == object and outputs2.dtype == object:
                 if outputs1.shape != outputs2.shape:
                     if verbose:
