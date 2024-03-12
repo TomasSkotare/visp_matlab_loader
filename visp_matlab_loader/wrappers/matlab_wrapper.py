@@ -148,7 +148,12 @@ def matlab_function(func):
     @wraps(func)
     def wrapper(self: MatlabProjectWrapper, *args, **kwargs):
         # Allow the calling function to perform changes (i.e. fix column/row vectors, etc.)
-        modified_args, modified_kwargs = func(self, *args, **kwargs)
+        return_values = func(self, *args, **kwargs)
+        modify_return_values_fun = None
+        if len(return_values) == 2:
+            modified_args, modified_kwargs = return_values
+        elif len(return_values) == 3:
+            modified_args, modified_kwargs, modify_return_values_fun = return_values
 
         # Get the current function's name
         func_name = func.__name__
@@ -168,6 +173,9 @@ def matlab_function(func):
 
         # Execute the function with the remaining arguments
         result = matlab_func.execute(*modified_args, **kwargs_without_self_and_requested_outputs)
+        
+        if modify_return_values_fun is not None:
+            result = modify_return_values_fun(result)
 
         # Check if the return type is MatlabExecutionResult
         if not isinstance(result, MatlabExecutionResult):
