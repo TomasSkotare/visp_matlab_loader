@@ -9,6 +9,7 @@ from subprocess import PIPE
 from typing import Iterable
 
 import numpy as np
+import scipy
 from scipy.io import loadmat, savemat
 
 from visp_matlab_loader.project.matlab_project import MatlabProject
@@ -87,6 +88,30 @@ class MatlabExecutor:
         logger.debug("Iterating over outputs.")
         for item in obj:
             yield item
+            
+    @staticmethod
+    def mat_struct_to_dict(obj):
+        """
+        A function to convert MATLAB structs into Python dictionaries.
+        """
+        if isinstance(obj, scipy.io.matlab.mat_struct):
+            # If the input object is a MATLAB struct, convert it to a dictionary
+            dict = {str(field): MatlabExecutor.mat_struct_to_dict(getattr(obj, field)) for field in obj._fieldnames}
+            logger.debug("Converted MATLAB struct to dictionary.")
+        elif isinstance(obj, np.ndarray) and obj.dtype.names is not None:
+            # If the input object is a structured NumPy array, convert it to a dictionary
+            dict = {name: MatlabExecutor.mat_struct_to_dict(obj[name]) for name in obj.dtype.names}
+            logger.debug("Converted structured NumPy array to dictionary.")
+        elif isinstance(obj, (list, np.ndarray)):
+            # If the input object is a list or an unstructured NumPy array, apply the function to each element
+            dict = [MatlabExecutor.mat_struct_to_dict(element) for element in obj]
+            logger.debug("Applied function to each element of list or unstructured NumPy array.")
+        else:
+            # If the input object is not a MATLAB struct or a NumPy array, return it as is
+            dict = obj
+            # Omitted this even in logging, as it is the most common case and not very interesting.
+            # logger.debug("Input object is not a MATLAB struct or a NumPy array.")
+        return dict
 
     def execute_script(self, function_name: str, output_count: int, *args):
         """Executes the specific script name witht he specified arguments.
@@ -192,9 +217,10 @@ class MatlabExecutor:
                 )
 
             # Load results from "results.mat" and then delete the file
-            res = loadmat("results.mat", squeeze_me=True, simplify_cells=True)
+            res = loadmat("results.mat", squeeze_me=True, simplify_cells=True, struct_as_record=True)
             os.remove("results.mat")
         output_names, outputs = res["results"]
+
         # Due to how we squeeze and simplify the cells, the output array can be a numpy
         # array shaped in unexpected ways.
         # This is our best attempt at fixing the issue for now.
@@ -232,6 +258,9 @@ class MatlabExecutor:
             return_inputs = []
 
         outputs_dict = dict(zip(output_names, outputs_iter))
+        
+        # Convert any matlab structs to python dictionaries
+        outputs_dict = {n:MatlabExecutor.mat_struct_to_dict(v) for n,v in outputs_dict.items()}
 
         debug_output_lines = [f"{key}: {str(value)[:100]}" for key, value in outputs_dict.items()]
         debug_output_str = "\n\t".join(debug_output_lines)

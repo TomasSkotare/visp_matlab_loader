@@ -114,3 +114,16 @@ class get_next_thousand(MatlabProjectWrapper):
         self, inputNumber: int, requested_outputs=3
     ) -> MatlabExecutionResult:
         return default_args(locals())  # type: ignore
+
+    @matlab_function
+    def getnextthreelists(
+        self, inputNumber1: int, inputNumber2: int, inputNumber3: int, count:int = 5, requested_outputs=3
+    ) -> MatlabExecutionResult:
+        return default_args(locals())  # type: ignore
+    
+    
+    @matlab_function
+    def getnextfivetypes(
+        self, inputVal, requested_outputs=5
+    ) -> MatlabExecutionResult:
+        return default_args(locals())  # type: ignore    
