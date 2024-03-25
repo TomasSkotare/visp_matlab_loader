@@ -152,7 +152,7 @@ if covarep is None:
     sys.exit(-1)
 
 # Execute the project
-executor = MatlabExecutor(covarep, return_inputs=True, verbose=verbose)
+executor = MatlabExecutor(covarep, return_inputs=True)
 
 pass_args = vars(args2)
 matlab_format = dict()

@@ -4,6 +4,11 @@ import tempfile
 import json_tricks
 import numpy as np
 
+import logging
+
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.INFO)
+
 
 class MatlabExecutionResult:
     """
@@ -66,13 +71,13 @@ class MatlabExecutionResult:
             )
         return False
 
-    def compare_results(self, other: "MatlabExecutionResult", verbose: bool = False):
+    def compare_results(self, other: "MatlabExecutionResult"):
         if isinstance(other, MatlabExecutionResult):
-            return MatlabExecutionResult.__compare_outputs(self.outputs, other.outputs, verbose=verbose)
+            return MatlabExecutionResult.__compare_outputs(self.outputs, other.outputs)
         raise ValueError("The other object is not a MatlabExecutionResult")
 
     @staticmethod
-    def __compare_outputs(outputs1, outputs2, verbose=False):
+    def __compare_outputs(outputs1, outputs2):
         # Check if one output is a numpy scalar and the other is a native Python type
         # Added this check in case a numpy scalar is saved as a native python type during serialization
         # This is a known issue with json_tricks.
@@ -83,59 +88,52 @@ class MatlabExecutionResult:
             val1 = outputs1.item() if isinstance(outputs1, np.generic) else outputs1
             val2 = outputs2.item() if isinstance(outputs2, np.generic) else outputs2
             if val1 != val2:
-                if verbose:
-                    print(f"Different values: {val1} and {val2}")
+                # Check if both values are nan; in that case, allow it!
+                if np.isnan(val1) and np.isnan(val2):
+                    return True
+                
+                logger.debug(f"Different values: {val1} and {val2}")
                 return False
             return True
         if type(outputs1) != type(outputs2):
-            if verbose:
-                print(f"Different types: {type(outputs1)} and {type(outputs2)}")
+            logger.debug(f"Different types: {type(outputs1)} and {type(outputs2)}")
             return False
 
         if isinstance(outputs1, dict) and isinstance(outputs2, dict):
             if set(outputs1.keys()) != set(outputs2.keys()):
-                if verbose:
-                    print("Different keys in dictionaries")
+                logger.debug("Different keys in dictionaries")
                 return False
             for key in outputs1:
-                if not MatlabExecutionResult.__compare_outputs(outputs1[key], outputs2.get(key, None), verbose):
-                    if verbose:
-                        print(f"Different values for key {key}: {outputs1[key]} and {outputs2.get(key, None)}")
+                if not MatlabExecutionResult.__compare_outputs(outputs1[key], outputs2.get(key, None)):
+                    logger.debug(f"Different values for key {key}: {outputs1[key]} and {outputs2.get(key, None)}")
                     return False
         elif isinstance(outputs1, list) and isinstance(outputs2, list):
             if len(outputs1) != len(outputs2):
-                if verbose:
-                    print("Different list lengths")
+                logger.debug("Different list lengths")
                 return False
             for item1, item2 in zip(outputs1, outputs2):
-                if not MatlabExecutionResult.__compare_outputs(item1, item2, verbose):
-                    if verbose:
-                        print(f"Different list items: {item1} and {item2}")
+                if not MatlabExecutionResult.__compare_outputs(item1, item2):
+                    logger.debug(f"Different list items: {item1} and {item2}")
                     return False
         elif isinstance(outputs1, np.ndarray) and isinstance(outputs2, np.ndarray):
             if not outputs1.dtype == outputs2.dtype:
-                if verbose:
-                    print(f"Different numpy array types: {outputs1.dtype} and {outputs2.dtype}")
+                logger.debug(f"Different numpy array types: {outputs1.dtype} and {outputs2.dtype}")
                 return False
             if outputs1.dtype == object and outputs2.dtype == object:
                 if outputs1.shape != outputs2.shape:
-                    if verbose:
-                        print("Different numpy array shapes")
+                    logger.debug("Different numpy array shapes")
                     return False
                 for item1, item2 in zip(outputs1.flat, outputs2.flat):
-                    if not MatlabExecutionResult.__compare_outputs(item1, item2, verbose):
-                        if verbose:
-                            print(f"Different numpy array items: {item1} and {item2}")
+                    if not MatlabExecutionResult.__compare_outputs(item1, item2):
+                        logger.debug(f"Different numpy array items: {item1} and {item2}")
                         return False
             else:
                 if not np.allclose(outputs1, outputs2, equal_nan=True, atol=0, rtol=0):
-                    if verbose:
-                        print(f"Different numpy arrays")
+                    logger.debug(f"Different numpy arrays")
                     return False
         else:
             if outputs1 != outputs2:
-                if verbose:
-                    print(f"Different values: {outputs1} and {outputs2}")
+                logger.debug(f"Different values: {outputs1} and {outputs2}")
                 return False
         return True
 

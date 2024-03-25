@@ -152,8 +152,14 @@ helper functionfrom `visp_matlab_loader.wrappers.matlab_wrapper_helper`. The opt
 as the Matlab function expects a struct with these variables.  We then create the args and kwargs separately and 
 return them instead of using the default with locals.
 
+If it is required to modify the outputs from the function, a callable (function) can be defined and returned as the third parameter. The function will have one parameter, the `MatlabExecutionResult`, and will also return a `MatlabExecutionResult`.
 
-
+This callable will then be called automatically, as explained in the executioner functions:
+```
+if modify_return_values_fun is not None:
+    result = modify_return_values_fun(result)
+```
+Where result is a `MatlabExecutionResult` object, where ´results.outpus´ can be modified.
 
 
 # References:

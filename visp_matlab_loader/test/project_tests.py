@@ -47,7 +47,7 @@ class TestMatlabProject:
             logger.info(f"Found function: {matlab_function}\nExecuting...")
             new_result = matlab_function.execute(*test_case_execution.inputs)
 
-            if not new_result.compare_results(test_case_execution, verbose=True):
+            if not new_result.compare_results(test_case_execution):
                 logger.warning("Results do not match")
             else:
                 logger.info("Results match!")
